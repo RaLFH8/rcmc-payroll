@@ -37,6 +37,11 @@ const Payroll = () => {
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     const dateIssued = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
     
+    // Format currency without peso symbol (jsPDF doesn't handle it well)
+    const formatAmount = (amount) => {
+      return 'PHP ' + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    }
+    
     // Header
     doc.setFontSize(16)
     doc.setFont('helvetica', 'bold')
@@ -98,7 +103,7 @@ const Payroll = () => {
     // Basic Salary
     doc.setFont('helvetica', 'normal')
     doc.text('Basic Salary', 25, yPos)
-    doc.text('₱' + employee.salary.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 185, yPos, { align: 'right' })
+    doc.text(formatAmount(employee.salary), 185, yPos, { align: 'right' })
     
     yPos += 8
     
@@ -113,19 +118,19 @@ const Payroll = () => {
     // SSS
     doc.setFont('helvetica', 'normal')
     doc.text('  SSS Contribution', 25, yPos)
-    doc.text('₱' + (employee.sss || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 185, yPos, { align: 'right' })
+    doc.text(formatAmount(employee.sss || 0), 185, yPos, { align: 'right' })
     
     yPos += 7
     
     // PhilHealth
     doc.text('  PhilHealth Contribution', 25, yPos)
-    doc.text('₱' + (employee.philhealth || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 185, yPos, { align: 'right' })
+    doc.text(formatAmount(employee.philhealth || 0), 185, yPos, { align: 'right' })
     
     yPos += 7
     
     // Pag-IBIG
     doc.text('  Pag-IBIG Contribution', 25, yPos)
-    doc.text('₱' + (employee.pagibig || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 185, yPos, { align: 'right' })
+    doc.text(formatAmount(employee.pagibig || 0), 185, yPos, { align: 'right' })
     
     yPos += 10
     
@@ -134,7 +139,7 @@ const Payroll = () => {
     doc.rect(20, yPos - 3, 170, 8, 'F')
     doc.setFont('helvetica', 'bold')
     doc.text('Total Deductions', 25, yPos + 2)
-    doc.text('₱' + totalDed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 185, yPos + 2, { align: 'right' })
+    doc.text(formatAmount(totalDed), 185, yPos + 2, { align: 'right' })
     
     yPos += 15
     
@@ -146,7 +151,7 @@ const Payroll = () => {
     doc.setFont('helvetica', 'bold')
     doc.text('NET PAY:', 25, yPos + 8)
     doc.setFontSize(14)
-    doc.text('₱' + netPay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 185, yPos + 8, { align: 'right' })
+    doc.text(formatAmount(netPay), 185, yPos + 8, { align: 'right' })
     
     // Signatures
     yPos += 40
@@ -160,6 +165,9 @@ const Payroll = () => {
     
     // Save PDF
     doc.save(`Payslip_${employee.name.replace(/\s+/g, '_')}_${monthYear.replace(/\s+/g, '_')}.pdf`)
+    
+    // Close the preview modal after download
+    setPreviewEmployee(null)
   }
 
   const totalPayroll = employees.reduce((sum, emp) => sum + Number(emp.salary), 0)
