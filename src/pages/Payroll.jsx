@@ -29,7 +29,7 @@ const Payroll = () => {
 
   const calculateNetPay = (emp) => {
     const salary = payPeriodType === 'weekly' ? Number(emp.salary) / 4 : Number(emp.salary)
-    const sss = payPeriodType === 'weekly' ? Number(emp.sss || 0) / 4 : Number(emp.sss || 0)
+    const sss = payPeriodType === 'weekly' ? salary * 0.01875 : Number(emp.sss || 0)
     const philhealth = payPeriodType === 'weekly' ? Number(emp.philhealth || 0) / 4 : Number(emp.philhealth || 0)
     const pagibig = payPeriodType === 'weekly' ? Number(emp.pagibig || 0) / 4 : Number(emp.pagibig || 0)
     const cashAdvance = payPeriodType === 'weekly' ? Number(emp.cash_advance || 0) / 4 : Number(emp.cash_advance || 0)
@@ -39,6 +39,14 @@ const Payroll = () => {
 
   const getSalaryAmount = (emp) => {
     return payPeriodType === 'weekly' ? Number(emp.salary) / 4 : Number(emp.salary)
+  }
+
+  const getSSSAmount = (emp) => {
+    if (payPeriodType === 'weekly') {
+      const weeklySalary = Number(emp.salary) / 4
+      return weeklySalary * 0.01875 // 1.875% of weekly salary
+    }
+    return Number(emp.sss || 0)
   }
 
   const getDeductionAmount = (amount) => {
@@ -59,7 +67,7 @@ const Payroll = () => {
   const downloadPayslipPDF = (employee) => {
     const doc = new jsPDF()
     const salary = payPeriodType === 'weekly' ? Number(employee.salary) / 4 : Number(employee.salary)
-    const sss = getDeductionAmount(employee.sss)
+    const sss = getSSSAmount(employee)
     const philhealth = getDeductionAmount(employee.philhealth)
     const pagibig = getDeductionAmount(employee.pagibig)
     const cashAdvance = getDeductionAmount(employee.cash_advance)
@@ -210,7 +218,7 @@ const Payroll = () => {
 
   const totalPayroll = employees.reduce((sum, emp) => sum + getSalaryAmount(emp), 0)
   const totalDeductions = employees.reduce((sum, emp) => 
-    sum + getDeductionAmount(emp.sss) + getDeductionAmount(emp.philhealth) + getDeductionAmount(emp.pagibig) + getDeductionAmount(emp.cash_advance), 0
+    sum + getSSSAmount(emp) + getDeductionAmount(emp.philhealth) + getDeductionAmount(emp.pagibig) + getDeductionAmount(emp.cash_advance), 0
   )
   const totalNetPay = totalPayroll - totalDeductions
 
@@ -227,7 +235,7 @@ const Payroll = () => {
 
   const PayslipPreview = ({ employee }) => {
     const salary = payPeriodType === 'weekly' ? Number(employee.salary) / 4 : Number(employee.salary)
-    const sss = getDeductionAmount(employee.sss)
+    const sss = getSSSAmount(employee)
     const philhealth = getDeductionAmount(employee.philhealth)
     const pagibig = getDeductionAmount(employee.pagibig)
     const cashAdvance = getDeductionAmount(employee.cash_advance)
@@ -448,7 +456,7 @@ const Payroll = () => {
             <tbody>
               {employees.map((emp) => {
                 const salary = getSalaryAmount(emp)
-                const sss = getDeductionAmount(emp.sss)
+                const sss = getSSSAmount(emp)
                 const philhealth = getDeductionAmount(emp.philhealth)
                 const pagibig = getDeductionAmount(emp.pagibig)
                 const cashAdvance = getDeductionAmount(emp.cash_advance)
