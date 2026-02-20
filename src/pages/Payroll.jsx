@@ -11,8 +11,7 @@ const Payroll = () => {
   const [editingCashAdvance, setEditingCashAdvance] = useState(null)
   const [editingIncentive, setEditingIncentive] = useState(null)
   const [payPeriodType, setPayPeriodType] = useState('monthly') // 'monthly' or 'weekly'
-  const [weekStartDate, setWeekStartDate] = useState('')
-  const [weekEndDate, setWeekEndDate] = useState('')
+  const [employeeDates, setEmployeeDates] = useState({}) // Store start/end dates per employee
 
   useEffect(() => {
     loadEmployees()
@@ -30,23 +29,24 @@ const Payroll = () => {
     }
   }
 
-  const calculateWorkDays = () => {
-    if (payPeriodType === 'weekly' && weekStartDate && weekEndDate) {
-      const start = new Date(weekStartDate)
-      const end = new Date(weekEndDate)
+  const calculateWorkDays = (employeeId) => {
+    const dates = employeeDates[employeeId]
+    if (payPeriodType === 'weekly' && dates?.startDate && dates?.endDate) {
+      const start = new Date(dates.startDate)
+      const end = new Date(dates.endDate)
       return Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1
     }
     return 30 // Default to 30 days for monthly
   }
 
-  const calculateSalary = (basicSalary) => {
-    const workDays = calculateWorkDays()
+  const calculateSalary = (basicSalary, employeeId) => {
+    const workDays = calculateWorkDays(employeeId)
     // Basic Salary is daily rate, multiply by work days
     return Number(basicSalary) * workDays
   }
 
   const getSalaryAmount = (emp) => {
-    return calculateSalary(emp.salary)
+    return calculateSalary(emp.salary, emp.id)
   }
 
   const getIncentiveAmount = (emp) => {
@@ -120,15 +120,14 @@ const Payroll = () => {
     const netPay = salary + incentive - totalDed
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     
-    const dailyRate = calculateDailyRate(employee.salary)
-    
     let periodLabel = monthYear
     let workDays = ''
     
-    if (payPeriodType === 'weekly' && weekStartDate && weekEndDate) {
-      const start = new Date(weekStartDate)
-      const end = new Date(weekEndDate)
-      const days = calculateWorkDays()
+    const dates = employeeDates[employee.id]
+    if (payPeriodType === 'weekly' && dates?.startDate && dates?.endDate) {
+      const start = new Date(dates.startDate)
+      const end = new Date(dates.endDate)
+      const days = calculateWorkDays(employee.id)
       periodLabel = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
       workDays = `${days} ${days === 1 ? 'day' : 'days'}`
     }
@@ -321,10 +320,11 @@ const Payroll = () => {
     let periodLabel = monthYear
     let workDays = ''
     
-    if (payPeriodType === 'weekly' && weekStartDate && weekEndDate) {
-      const start = new Date(weekStartDate)
-      const end = new Date(weekEndDate)
-      const days = calculateWorkDays()
+    const dates = employeeDates[employee.id]
+    if (payPeriodType === 'weekly' && dates?.startDate && dates?.endDate) {
+      const start = new Date(dates.startDate)
+      const end = new Date(dates.endDate)
+      const days = calculateWorkDays(employee.id)
       periodLabel = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
       workDays = `${days} ${days === 1 ? 'day' : 'days'}`
     }
@@ -484,7 +484,7 @@ const Payroll = () => {
           <h1 className="text-2xl font-bold tracking-tight dark:text-white text-slate-900">Payroll Management</h1>
           <p className="dark:text-gray-400 text-slate-600 text-sm mt-1">Process and manage employee payroll</p>
         </div>
-        <div className="flex gap-3 items-center flex-wrap">
+        <div className="flex gap-3 items-center">
           <div className="flex gap-2 bg-slate-100 dark:bg-spectro-bg border-2 dark:border-spectro-border border-slate-300 rounded-lg p-1.5">
             <button
               onClick={() => setPayPeriodType('monthly')}
@@ -507,24 +507,7 @@ const Payroll = () => {
               Weekly
             </button>
           </div>
-          {payPeriodType === 'weekly' ? (
-            <>
-              <input
-                type="date"
-                value={weekStartDate}
-                onChange={(e) => setWeekStartDate(e.target.value)}
-                placeholder="Start Date"
-                className="px-4 py-2 dark:bg-white/5 bg-white border dark:border-spectro-border border-slate-300 rounded-lg dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple"
-              />
-              <input
-                type="date"
-                value={weekEndDate}
-                onChange={(e) => setWeekEndDate(e.target.value)}
-                placeholder="End Date"
-                className="px-4 py-2 dark:bg-white/5 bg-white border dark:border-spectro-border border-slate-300 rounded-lg dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple"
-              />
-            </>
-          ) : (
+          {payPeriodType === 'monthly' && (
             <input
               type="month"
               value={selectedMonth}
@@ -560,13 +543,20 @@ const Payroll = () => {
             <thead>
               <tr className="border-b dark:border-spectro-border border-slate-200">
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Employee</th>
-                <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Basic Salary</th>
+                {payPeriodType === 'weekly' && (
+                  <>
+                    <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Start Date</th>
+                    <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">End Date</th>
+                    <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Days</th>
+                  </>
+                )}
+                <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Salary</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Incentive</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">SSS</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">PhilHealth</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Pag-IBIG</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Cash Advance</th>
-                <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Total Deductions</th>
+                <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Deductions</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Net Pay</th>
               </tr>
             </thead>
@@ -597,6 +587,29 @@ const Payroll = () => {
                         </div>
                       </div>
                     </td>
+                    {payPeriodType === 'weekly' && (
+                      <>
+                        <td className="py-4 px-6">
+                          <input
+                            type="date"
+                            value={employeeDates[emp.id]?.startDate || ''}
+                            onChange={(e) => setEmployeeDates({...employeeDates, [emp.id]: {...employeeDates[emp.id], startDate: e.target.value}})}
+                            className="px-2 py-1 text-xs border dark:border-spectro-border border-slate-300 rounded dark:bg-white/5 bg-white dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple"
+                          />
+                        </td>
+                        <td className="py-4 px-6">
+                          <input
+                            type="date"
+                            value={employeeDates[emp.id]?.endDate || ''}
+                            onChange={(e) => setEmployeeDates({...employeeDates, [emp.id]: {...employeeDates[emp.id], endDate: e.target.value}})}
+                            className="px-2 py-1 text-xs border dark:border-spectro-border border-slate-300 rounded dark:bg-white/5 bg-white dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple"
+                          />
+                        </td>
+                        <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm font-semibold">
+                          {calculateWorkDays(emp.id)}
+                        </td>
+                      </>
+                    )}
                     <td className="py-4 px-6 font-semibold dark:text-white text-slate-900 text-sm">₱{salary.toLocaleString()}</td>
                     <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">
                       {editingIncentive === emp.id ? (
