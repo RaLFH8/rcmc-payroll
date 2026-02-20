@@ -30,45 +30,60 @@ const Payroll = () => {
     }
   }
 
-  const calculateDailyRate = (monthlySalary) => {
-    return Number(monthlySalary) / 30
+  const calculateWorkDays = () => {
+    if (payPeriodType === 'weekly' && weekStartDate && weekEndDate) {
+      const start = new Date(weekStartDate)
+      const end = new Date(weekEndDate)
+      return Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1
+    }
+    return 30 // Default to 30 days for monthly
   }
 
-  const calculateWeeklySalary = (monthlySalary) => {
-    const dailyRate = calculateDailyRate(monthlySalary)
-    return dailyRate * 7 // Mon-Sat work week = 7 days total (including Sunday)
-  }
-
-  const calculateNetPay = (emp) => {
-    const salary = payPeriodType === 'weekly' ? calculateWeeklySalary(emp.salary) : Number(emp.salary)
-    const incentive = Number(emp.incentive || 0) // Full amount, not prorated
-    const sss = payPeriodType === 'weekly' ? salary * 0.01875 : Number(emp.sss || 0)
-    const philhealth = payPeriodType === 'weekly' ? Number(emp.philhealth || 0) / 30 * 7 : Number(emp.philhealth || 0)
-    const pagibig = payPeriodType === 'weekly' ? Number(emp.pagibig || 0) / 30 * 7 : Number(emp.pagibig || 0)
-    const cashAdvance = payPeriodType === 'weekly' ? Number(emp.cash_advance || 0) / 30 * 7 : Number(emp.cash_advance || 0)
-    const deductions = sss + philhealth + pagibig + cashAdvance
-    return salary + incentive - deductions
+  const calculateSalary = (basicSalary) => {
+    const workDays = calculateWorkDays()
+    // Basic Salary is daily rate, multiply by work days
+    return Number(basicSalary) * workDays
   }
 
   const getSalaryAmount = (emp) => {
-    return payPeriodType === 'weekly' ? calculateWeeklySalary(emp.salary) : Number(emp.salary)
+    return calculateSalary(emp.salary)
   }
 
   const getIncentiveAmount = (emp) => {
-    return Number(emp.incentive || 0) // Full amount, not prorated
+    return Number(emp.incentive || 0) // Full amount, NOT prorated
   }
 
   const getSSSAmount = (emp) => {
+    const sssSalary = Number(emp.sss_salary || emp.salary)
+    const monthlySSS = sssSalary * 0.075 // 7.5% of SSS salary
+    
     if (payPeriodType === 'weekly') {
-      const sssSalary = Number(emp.sss_salary || emp.salary) // Use sss_salary if available, fallback to salary
-      const monthlySSS = sssSalary * 0.075 // 7.5% of SSS salary
       return monthlySSS / 4 // Divide by 4 for weekly
     }
-    return Number(emp.sss || 0)
+    return monthlySSS // Full monthly SSS
   }
 
-  const getDeductionAmount = (amount) => {
-    return payPeriodType === 'weekly' ? Number(amount || 0) / 30 * 7 : Number(amount || 0)
+  const getCashAdvanceAmount = (emp) => {
+    return Number(emp.cash_advance || 0) // Use stored value directly
+  }
+
+  const getPhilHealthAmount = (emp) => {
+    return Number(emp.philhealth || 0) // Use stored value directly
+  }
+
+  const getPagIbigAmount = (emp) => {
+    return Number(emp.pagibig || 0) // Use stored value directly
+  }
+
+  const calculateNetPay = (emp) => {
+    const salary = getSalaryAmount(emp)
+    const incentive = getIncentiveAmount(emp)
+    const sss = getSSSAmount(emp)
+    const philhealth = getPhilHealthAmount(emp)
+    const pagibig = getPagIbigAmount(emp)
+    const cashAdvance = getCashAdvanceAmount(emp)
+    const deductions = sss + philhealth + pagibig + cashAdvance
+    return salary + incentive - deductions
   }
 
   const updateCashAdvance = async (employeeId, newAmount) => {
@@ -95,12 +110,12 @@ const Payroll = () => {
 
   const downloadPayslipPDF = (employee) => {
     const doc = new jsPDF()
-    const salary = payPeriodType === 'weekly' ? calculateWeeklySalary(employee.salary) : Number(employee.salary)
+    const salary = getSalaryAmount(employee)
     const incentive = getIncentiveAmount(employee)
     const sss = getSSSAmount(employee)
-    const philhealth = getDeductionAmount(employee.philhealth)
-    const pagibig = getDeductionAmount(employee.pagibig)
-    const cashAdvance = getDeductionAmount(employee.cash_advance)
+    const philhealth = getPhilHealthAmount(employee)
+    const pagibig = getPagIbigAmount(employee)
+    const cashAdvance = getCashAdvanceAmount(employee)
     const totalDed = sss + philhealth + pagibig + cashAdvance
     const netPay = salary + incentive - totalDed
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -113,7 +128,7 @@ const Payroll = () => {
     if (payPeriodType === 'weekly' && weekStartDate && weekEndDate) {
       const start = new Date(weekStartDate)
       const end = new Date(weekEndDate)
-      const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1
+      const days = calculateWorkDays()
       periodLabel = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
       workDays = `${days} ${days === 1 ? 'day' : 'days'}`
     }
@@ -277,7 +292,7 @@ const Payroll = () => {
 
   const totalPayroll = employees.reduce((sum, emp) => sum + getSalaryAmount(emp), 0)
   const totalDeductions = employees.reduce((sum, emp) => 
-    sum + getSSSAmount(emp) + getDeductionAmount(emp.philhealth) + getDeductionAmount(emp.pagibig) + getDeductionAmount(emp.cash_advance), 0
+    sum + getSSSAmount(emp) + getPhilHealthAmount(emp) + getPagIbigAmount(emp) + getCashAdvanceAmount(emp), 0
   )
   const totalNetPay = totalPayroll - totalDeductions
 
@@ -293,12 +308,12 @@ const Payroll = () => {
   }
 
   const PayslipPreview = ({ employee }) => {
-    const salary = payPeriodType === 'weekly' ? calculateWeeklySalary(employee.salary) : Number(employee.salary)
+    const salary = getSalaryAmount(employee)
     const incentive = getIncentiveAmount(employee)
     const sss = getSSSAmount(employee)
-    const philhealth = getDeductionAmount(employee.philhealth)
-    const pagibig = getDeductionAmount(employee.pagibig)
-    const cashAdvance = getDeductionAmount(employee.cash_advance)
+    const philhealth = getPhilHealthAmount(employee)
+    const pagibig = getPagIbigAmount(employee)
+    const cashAdvance = getCashAdvanceAmount(employee)
     const totalDed = sss + philhealth + pagibig + cashAdvance
     const netPay = salary + incentive - totalDed
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -309,7 +324,7 @@ const Payroll = () => {
     if (payPeriodType === 'weekly' && weekStartDate && weekEndDate) {
       const start = new Date(weekStartDate)
       const end = new Date(weekEndDate)
-      const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1
+      const days = calculateWorkDays()
       periodLabel = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
       workDays = `${days} ${days === 1 ? 'day' : 'days'}`
     }
@@ -560,9 +575,9 @@ const Payroll = () => {
                 const salary = getSalaryAmount(emp)
                 const incentive = getIncentiveAmount(emp)
                 const sss = getSSSAmount(emp)
-                const philhealth = getDeductionAmount(emp.philhealth)
-                const pagibig = getDeductionAmount(emp.pagibig)
-                const cashAdvance = getDeductionAmount(emp.cash_advance)
+                const philhealth = getPhilHealthAmount(emp)
+                const pagibig = getPagIbigAmount(emp)
+                const cashAdvance = getCashAdvanceAmount(emp)
                 const totalDed = sss + philhealth + pagibig + cashAdvance
                 const netPay = salary + incentive - totalDed
                 
