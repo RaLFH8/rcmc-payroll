@@ -29,12 +29,20 @@ const Payroll = () => {
 
   const calculateNetPay = (emp) => {
     const salary = payPeriodType === 'weekly' ? Number(emp.salary) / 4 : Number(emp.salary)
-    const deductions = Number(emp.sss || 0) + Number(emp.philhealth || 0) + Number(emp.pagibig || 0) + Number(emp.cash_advance || 0)
+    const sss = payPeriodType === 'weekly' ? Number(emp.sss || 0) / 4 : Number(emp.sss || 0)
+    const philhealth = payPeriodType === 'weekly' ? Number(emp.philhealth || 0) / 4 : Number(emp.philhealth || 0)
+    const pagibig = payPeriodType === 'weekly' ? Number(emp.pagibig || 0) / 4 : Number(emp.pagibig || 0)
+    const cashAdvance = payPeriodType === 'weekly' ? Number(emp.cash_advance || 0) / 4 : Number(emp.cash_advance || 0)
+    const deductions = sss + philhealth + pagibig + cashAdvance
     return salary - deductions
   }
 
   const getSalaryAmount = (emp) => {
     return payPeriodType === 'weekly' ? Number(emp.salary) / 4 : Number(emp.salary)
+  }
+
+  const getDeductionAmount = (amount) => {
+    return payPeriodType === 'weekly' ? Number(amount || 0) / 4 : Number(amount || 0)
   }
 
   const updateCashAdvance = async (employeeId, newAmount) => {
@@ -51,7 +59,11 @@ const Payroll = () => {
   const downloadPayslipPDF = (employee) => {
     const doc = new jsPDF()
     const salary = payPeriodType === 'weekly' ? Number(employee.salary) / 4 : Number(employee.salary)
-    const totalDed = Number(employee.sss || 0) + Number(employee.philhealth || 0) + Number(employee.pagibig || 0) + Number(employee.cash_advance || 0)
+    const sss = getDeductionAmount(employee.sss)
+    const philhealth = getDeductionAmount(employee.philhealth)
+    const pagibig = getDeductionAmount(employee.pagibig)
+    const cashAdvance = getDeductionAmount(employee.cash_advance)
+    const totalDed = sss + philhealth + pagibig + cashAdvance
     const netPay = salary - totalDed
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     const dateIssued = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -138,25 +150,25 @@ const Payroll = () => {
     // SSS
     doc.setFont('helvetica', 'normal')
     doc.text('  SSS Contribution', 25, yPos)
-    doc.text(formatAmount(employee.sss || 0), 185, yPos, { align: 'right' })
+    doc.text(formatAmount(sss), 185, yPos, { align: 'right' })
     
     yPos += 7
     
     // PhilHealth
     doc.text('  PhilHealth Contribution', 25, yPos)
-    doc.text(formatAmount(employee.philhealth || 0), 185, yPos, { align: 'right' })
+    doc.text(formatAmount(philhealth), 185, yPos, { align: 'right' })
     
     yPos += 7
     
     // Pag-IBIG
     doc.text('  Pag-IBIG Contribution', 25, yPos)
-    doc.text(formatAmount(employee.pagibig || 0), 185, yPos, { align: 'right' })
+    doc.text(formatAmount(pagibig), 185, yPos, { align: 'right' })
     
     yPos += 7
     
     // Cash Advance
     doc.text('  Cash Advance', 25, yPos)
-    doc.text(formatAmount(employee.cash_advance || 0), 185, yPos, { align: 'right' })
+    doc.text(formatAmount(cashAdvance), 185, yPos, { align: 'right' })
     
     yPos += 10
     
@@ -198,7 +210,7 @@ const Payroll = () => {
 
   const totalPayroll = employees.reduce((sum, emp) => sum + getSalaryAmount(emp), 0)
   const totalDeductions = employees.reduce((sum, emp) => 
-    sum + Number(emp.sss || 0) + Number(emp.philhealth || 0) + Number(emp.pagibig || 0) + Number(emp.cash_advance || 0), 0
+    sum + getDeductionAmount(emp.sss) + getDeductionAmount(emp.philhealth) + getDeductionAmount(emp.pagibig) + getDeductionAmount(emp.cash_advance), 0
   )
   const totalNetPay = totalPayroll - totalDeductions
 
@@ -215,7 +227,11 @@ const Payroll = () => {
 
   const PayslipPreview = ({ employee }) => {
     const salary = payPeriodType === 'weekly' ? Number(employee.salary) / 4 : Number(employee.salary)
-    const totalDed = Number(employee.sss || 0) + Number(employee.philhealth || 0) + Number(employee.pagibig || 0) + Number(employee.cash_advance || 0)
+    const sss = getDeductionAmount(employee.sss)
+    const philhealth = getDeductionAmount(employee.philhealth)
+    const pagibig = getDeductionAmount(employee.pagibig)
+    const cashAdvance = getDeductionAmount(employee.cash_advance)
+    const totalDed = sss + philhealth + pagibig + cashAdvance
     const netPay = salary - totalDed
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     const periodLabel = payPeriodType === 'weekly' ? `Weekly - ${monthYear}` : monthYear
@@ -244,14 +260,14 @@ const Payroll = () => {
           </div>
           
           <div className="p-8">
-            <PayslipContent employee={employee} salary={salary} totalDed={totalDed} netPay={netPay} monthYear={periodLabel} />
+            <PayslipContent employee={employee} salary={salary} sss={sss} philhealth={philhealth} pagibig={pagibig} cashAdvance={cashAdvance} totalDed={totalDed} netPay={netPay} monthYear={periodLabel} />
           </div>
         </div>
       </div>
     )
   }
   
-  const PayslipContent = ({ employee, salary, totalDed, netPay, monthYear }) => {
+  const PayslipContent = ({ employee, salary, sss, philhealth, pagibig, cashAdvance, totalDed, netPay, monthYear }) => {
     return (
       <div>
         {/* Header */}
@@ -309,19 +325,19 @@ const Payroll = () => {
               </tr>
               <tr className="border-b border-gray-200">
                 <td className="py-2 px-4 pl-8 text-gray-700">SSS Contribution</td>
-                <td className="py-2 px-4 text-right text-gray-900 font-mono">₱{(employee.sss || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="py-2 px-4 text-right text-gray-900 font-mono">₱{sss.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               </tr>
               <tr className="border-b border-gray-200">
                 <td className="py-2 px-4 pl-8 text-gray-700">PhilHealth Contribution</td>
-                <td className="py-2 px-4 text-right text-gray-900 font-mono">₱{(employee.philhealth || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="py-2 px-4 text-right text-gray-900 font-mono">₱{philhealth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               </tr>
               <tr className="border-b border-gray-300">
                 <td className="py-2 px-4 pl-8 text-gray-700">Pag-IBIG Contribution</td>
-                <td className="py-2 px-4 text-right text-gray-900 font-mono">₱{(employee.pagibig || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="py-2 px-4 text-right text-gray-900 font-mono">₱{pagibig.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               </tr>
               <tr className="border-b border-gray-300">
                 <td className="py-2 px-4 pl-8 text-gray-700">Cash Advance</td>
-                <td className="py-2 px-4 text-right text-gray-900 font-mono">₱{(employee.cash_advance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="py-2 px-4 text-right text-gray-900 font-mono">₱{cashAdvance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               </tr>
               <tr className="bg-gray-100">
                 <td className="py-3 px-4 font-semibold text-gray-900">Total Deductions</td>
@@ -432,7 +448,11 @@ const Payroll = () => {
             <tbody>
               {employees.map((emp) => {
                 const salary = getSalaryAmount(emp)
-                const totalDed = Number(emp.sss || 0) + Number(emp.philhealth || 0) + Number(emp.pagibig || 0) + Number(emp.cash_advance || 0)
+                const sss = getDeductionAmount(emp.sss)
+                const philhealth = getDeductionAmount(emp.philhealth)
+                const pagibig = getDeductionAmount(emp.pagibig)
+                const cashAdvance = getDeductionAmount(emp.cash_advance)
+                const totalDed = sss + philhealth + pagibig + cashAdvance
                 const netPay = salary - totalDed
                 
                 return (
@@ -452,9 +472,9 @@ const Payroll = () => {
                       </div>
                     </td>
                     <td className="py-4 px-6 font-semibold dark:text-white text-slate-900 text-sm">₱{salary.toLocaleString()}</td>
-                    <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{(emp.sss || 0).toLocaleString()}</td>
-                    <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{(emp.philhealth || 0).toLocaleString()}</td>
-                    <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{(emp.pagibig || 0).toLocaleString()}</td>
+                    <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{sss.toLocaleString()}</td>
+                    <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{philhealth.toLocaleString()}</td>
+                    <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{pagibig.toLocaleString()}</td>
                     <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">
                       {editingCashAdvance === emp.id ? (
                         <input
@@ -479,7 +499,7 @@ const Payroll = () => {
                           }}
                           className="cursor-pointer hover:text-spectro-purple transition-colors"
                         >
-                          ₱{(emp.cash_advance || 0).toLocaleString()}
+                          ₱{cashAdvance.toLocaleString()}
                         </span>
                       )}
                     </td>
