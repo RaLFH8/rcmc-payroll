@@ -287,6 +287,7 @@ const Employees = () => {
                     <option value="Pharmacy">Pharmacy</option>
                     <option value="Administration">Administration</option>
                     <option value="Finance">Finance</option>
+                    <option value="Maintenance">Maintenance</option>
                   </select>
                 </div>
               </div>
