@@ -60,8 +60,8 @@ const Payroll = () => {
 
   const getSSSAmount = (emp) => {
     if (payPeriodType === 'weekly') {
-      const monthlySalary = Number(emp.salary)
-      const monthlySSS = monthlySalary * 0.075 // 7.5% of monthly salary
+      const sssSalary = Number(emp.sss_salary || emp.salary) // Use sss_salary if available, fallback to salary
+      const monthlySSS = sssSalary * 0.075 // 7.5% of SSS salary
       return monthlySSS / 4 // Divide by 4 for weekly
     }
     return Number(emp.sss || 0)

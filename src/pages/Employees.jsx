@@ -14,6 +14,7 @@ const Employees = () => {
     position: '',
     department: '',
     salary: '',
+    sss_salary: '',
     status: 'Active',
     join_date: '',
     sss_number: '',
@@ -43,12 +44,13 @@ const Employees = () => {
     e.preventDefault()
     
     try {
-      // Auto-calculate SSS: 15% of salary, employee pays 7.5%
-      const sssContribution = parseFloat(formData.salary) * 0.075
+      // Auto-calculate SSS: 15% of SSS salary, employee pays 7.5%
+      const sssContribution = parseFloat(formData.sss_salary) * 0.075
       
       const employeeData = {
         ...formData,
         salary: parseFloat(formData.salary),
+        sss_salary: parseFloat(formData.sss_salary),
         sss: sssContribution,
         philhealth: parseFloat(formData.philhealth) || 0,
         pagibig: parseFloat(formData.pagibig) || 0
@@ -76,6 +78,7 @@ const Employees = () => {
       position: employee.position,
       department: employee.department,
       salary: employee.salary,
+      sss_salary: employee.sss_salary || '',
       status: employee.status,
       join_date: employee.join_date,
       sss_number: employee.sss_number || '',
@@ -107,6 +110,7 @@ const Employees = () => {
       position: '',
       department: '',
       salary: '',
+      sss_salary: '',
       status: 'Active',
       join_date: '',
       sss_number: '',
@@ -306,6 +310,20 @@ const Employees = () => {
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">SSS Salary *</label>
+                  <input
+                    type="number"
+                    required
+                    value={formData.sss_salary}
+                    onChange={(e) => setFormData({...formData, sss_salary: e.target.value})}
+                    placeholder="For SSS contribution calculation"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Join Date *</label>
                   <input
                     type="date"
@@ -315,11 +333,12 @@ const Employees = () => {
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   />
                 </div>
+                <div></div>
               </div>
 
               <div className="bg-gray-50 rounded-xl p-4 mb-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Government Deductions</h3>
-                <p className="text-xs text-gray-500 mb-3">SSS is auto-calculated at 7.5% of salary. PhilHealth and Pag-IBIG can be entered manually.</p>
+                <p className="text-xs text-gray-500 mb-3">SSS is auto-calculated at 7.5% of SSS Salary. PhilHealth and Pag-IBIG can be entered manually.</p>
                 
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">SSS Number</label>
@@ -338,7 +357,7 @@ const Employees = () => {
                     <input
                       type="text"
                       disabled
-                      value={formData.salary ? `₱${(parseFloat(formData.salary) * 0.075).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '₱0.00'}
+                      value={formData.sss_salary ? `₱${(parseFloat(formData.sss_salary) * 0.075).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '₱0.00'}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-100 text-gray-600"
                     />
                   </div>
