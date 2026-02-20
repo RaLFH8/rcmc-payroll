@@ -478,13 +478,13 @@ const Payroll = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-8 space-y-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight dark:text-white text-slate-900">Payroll Management</h1>
           <p className="dark:text-gray-400 text-slate-600 text-sm mt-1">Process and manage employee payroll</p>
         </div>
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center flex-wrap">
           <div className="flex gap-2 bg-slate-100 dark:bg-spectro-bg border-2 dark:border-spectro-border border-slate-300 rounded-lg p-1.5">
             <button
               onClick={() => setPayPeriodType('monthly')}
