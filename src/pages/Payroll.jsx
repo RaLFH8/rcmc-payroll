@@ -60,8 +60,9 @@ const Payroll = () => {
 
   const getSSSAmount = (emp) => {
     if (payPeriodType === 'weekly') {
-      const weeklySalary = Number(emp.salary) / 4
-      return weeklySalary * 0.01875 // 1.875% of weekly salary
+      const monthlySalary = Number(emp.salary)
+      const monthlySSS = monthlySalary * 0.075 // 7.5% of monthly salary
+      return monthlySSS / 4 // Divide by 4 for weekly
     }
     return Number(emp.sss || 0)
   }
@@ -112,11 +113,9 @@ const Payroll = () => {
     if (payPeriodType === 'weekly' && weekStartDate && weekEndDate) {
       const start = new Date(weekStartDate)
       const end = new Date(weekEndDate)
+      const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1
       periodLabel = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-      workDays = '6 work days (Mon-Sat) + 1 rest day = 7 days'
-    } else if (payPeriodType === 'weekly') {
-      periodLabel = `Weekly - ${monthYear}`
-      workDays = '6 work days (Mon-Sat) + 1 rest day = 7 days'
+      workDays = `${days} ${days === 1 ? 'day' : 'days'}`
     }
     
     const dateIssued = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -310,11 +309,9 @@ const Payroll = () => {
     if (payPeriodType === 'weekly' && weekStartDate && weekEndDate) {
       const start = new Date(weekStartDate)
       const end = new Date(weekEndDate)
+      const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1
       periodLabel = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-      workDays = '6 work days (Mon-Sat) + 1 rest day = 7 days'
-    } else if (payPeriodType === 'weekly') {
-      periodLabel = `Weekly - ${monthYear}`
-      workDays = '6 work days (Mon-Sat) + 1 rest day = 7 days'
+      workDays = `${days} ${days === 1 ? 'day' : 'days'}`
     }
     
     return (
