@@ -9,7 +9,10 @@ const Payroll = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
   const [previewEmployee, setPreviewEmployee] = useState(null)
   const [editingCashAdvance, setEditingCashAdvance] = useState(null)
+  const [editingIncentive, setEditingIncentive] = useState(null)
   const [payPeriodType, setPayPeriodType] = useState('monthly') // 'monthly' or 'weekly'
+  const [weekStartDate, setWeekStartDate] = useState('')
+  const [weekEndDate, setWeekEndDate] = useState('')
 
   useEffect(() => {
     loadEmployees()
@@ -27,18 +30,32 @@ const Payroll = () => {
     }
   }
 
+  const calculateDailyRate = (monthlySalary) => {
+    return Number(monthlySalary) / 30
+  }
+
+  const calculateWeeklySalary = (monthlySalary) => {
+    const dailyRate = calculateDailyRate(monthlySalary)
+    return dailyRate * 7 // Mon-Sat work week = 7 days total (including Sunday)
+  }
+
   const calculateNetPay = (emp) => {
-    const salary = payPeriodType === 'weekly' ? Number(emp.salary) / 4 : Number(emp.salary)
+    const salary = payPeriodType === 'weekly' ? calculateWeeklySalary(emp.salary) : Number(emp.salary)
+    const incentive = Number(emp.incentive || 0) // Full amount, not prorated
     const sss = payPeriodType === 'weekly' ? salary * 0.01875 : Number(emp.sss || 0)
-    const philhealth = payPeriodType === 'weekly' ? Number(emp.philhealth || 0) / 4 : Number(emp.philhealth || 0)
-    const pagibig = payPeriodType === 'weekly' ? Number(emp.pagibig || 0) / 4 : Number(emp.pagibig || 0)
-    const cashAdvance = payPeriodType === 'weekly' ? Number(emp.cash_advance || 0) / 4 : Number(emp.cash_advance || 0)
+    const philhealth = payPeriodType === 'weekly' ? Number(emp.philhealth || 0) / 30 * 7 : Number(emp.philhealth || 0)
+    const pagibig = payPeriodType === 'weekly' ? Number(emp.pagibig || 0) / 30 * 7 : Number(emp.pagibig || 0)
+    const cashAdvance = payPeriodType === 'weekly' ? Number(emp.cash_advance || 0) / 30 * 7 : Number(emp.cash_advance || 0)
     const deductions = sss + philhealth + pagibig + cashAdvance
-    return salary - deductions
+    return salary + incentive - deductions
   }
 
   const getSalaryAmount = (emp) => {
-    return payPeriodType === 'weekly' ? Number(emp.salary) / 4 : Number(emp.salary)
+    return payPeriodType === 'weekly' ? calculateWeeklySalary(emp.salary) : Number(emp.salary)
+  }
+
+  const getIncentiveAmount = (emp) => {
+    return Number(emp.incentive || 0) // Full amount, not prorated
   }
 
   const getSSSAmount = (emp) => {
@@ -50,7 +67,7 @@ const Payroll = () => {
   }
 
   const getDeductionAmount = (amount) => {
-    return payPeriodType === 'weekly' ? Number(amount || 0) / 4 : Number(amount || 0)
+    return payPeriodType === 'weekly' ? Number(amount || 0) / 30 * 7 : Number(amount || 0)
   }
 
   const updateCashAdvance = async (employeeId, newAmount) => {
@@ -64,18 +81,45 @@ const Payroll = () => {
     }
   }
 
+  const updateIncentive = async (employeeId, newAmount) => {
+    try {
+      await db.updateEmployee(employeeId, { incentive: Number(newAmount) || 0 })
+      await loadEmployees()
+      setEditingIncentive(null)
+    } catch (error) {
+      console.error('Error updating incentive:', error)
+      alert('Failed to update incentive')
+    }
+  }
+
   const downloadPayslipPDF = (employee) => {
     const doc = new jsPDF()
-    const salary = payPeriodType === 'weekly' ? Number(employee.salary) / 4 : Number(employee.salary)
+    const salary = payPeriodType === 'weekly' ? calculateWeeklySalary(employee.salary) : Number(employee.salary)
+    const incentive = getIncentiveAmount(employee)
     const sss = getSSSAmount(employee)
     const philhealth = getDeductionAmount(employee.philhealth)
     const pagibig = getDeductionAmount(employee.pagibig)
     const cashAdvance = getDeductionAmount(employee.cash_advance)
     const totalDed = sss + philhealth + pagibig + cashAdvance
-    const netPay = salary - totalDed
+    const netPay = salary + incentive - totalDed
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    
+    const dailyRate = calculateDailyRate(employee.salary)
+    
+    let periodLabel = monthYear
+    let workDays = ''
+    
+    if (payPeriodType === 'weekly' && weekStartDate && weekEndDate) {
+      const start = new Date(weekStartDate)
+      const end = new Date(weekEndDate)
+      periodLabel = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+      workDays = '6 work days (Mon-Sat) + 1 rest day = 7 days'
+    } else if (payPeriodType === 'weekly') {
+      periodLabel = `Weekly - ${monthYear}`
+      workDays = '6 work days (Mon-Sat) + 1 rest day = 7 days'
+    }
+    
     const dateIssued = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    const periodLabel = payPeriodType === 'weekly' ? `Weekly - ${monthYear}` : monthYear
     
     // Format currency without peso symbol (jsPDF doesn't handle it well)
     const formatAmount = (amount) => {
@@ -128,6 +172,13 @@ const Payroll = () => {
     doc.setFont('helvetica', 'normal')
     doc.text(employee.department, 60, 72)
     
+    if (workDays) {
+      doc.setFont('helvetica', 'bold')
+      doc.text('Work Days:', 120, 72)
+      doc.setFont('helvetica', 'normal')
+      doc.text(workDays, 150, 72)
+    }
+    
     // Table
     let yPos = 85
     
@@ -145,7 +196,16 @@ const Payroll = () => {
     doc.text(payPeriodType === 'weekly' ? 'Weekly Salary' : 'Basic Salary', 25, yPos)
     doc.text(formatAmount(salary), 185, yPos, { align: 'right' })
     
-    yPos += 8
+    yPos += 7
+    
+    // Incentive
+    if (incentive > 0) {
+      doc.text('Incentive', 25, yPos)
+      doc.text(formatAmount(incentive), 185, yPos, { align: 'right' })
+      yPos += 7
+    }
+    
+    yPos += 1
     
     // Deductions header
     doc.setFillColor(250, 250, 250)
@@ -234,15 +294,28 @@ const Payroll = () => {
   }
 
   const PayslipPreview = ({ employee }) => {
-    const salary = payPeriodType === 'weekly' ? Number(employee.salary) / 4 : Number(employee.salary)
+    const salary = payPeriodType === 'weekly' ? calculateWeeklySalary(employee.salary) : Number(employee.salary)
+    const incentive = getIncentiveAmount(employee)
     const sss = getSSSAmount(employee)
     const philhealth = getDeductionAmount(employee.philhealth)
     const pagibig = getDeductionAmount(employee.pagibig)
     const cashAdvance = getDeductionAmount(employee.cash_advance)
     const totalDed = sss + philhealth + pagibig + cashAdvance
-    const netPay = salary - totalDed
+    const netPay = salary + incentive - totalDed
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-    const periodLabel = payPeriodType === 'weekly' ? `Weekly - ${monthYear}` : monthYear
+    
+    let periodLabel = monthYear
+    let workDays = ''
+    
+    if (payPeriodType === 'weekly' && weekStartDate && weekEndDate) {
+      const start = new Date(weekStartDate)
+      const end = new Date(weekEndDate)
+      periodLabel = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+      workDays = '6 work days (Mon-Sat) + 1 rest day = 7 days'
+    } else if (payPeriodType === 'weekly') {
+      periodLabel = `Weekly - ${monthYear}`
+      workDays = '6 work days (Mon-Sat) + 1 rest day = 7 days'
+    }
     
     return (
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -268,14 +341,14 @@ const Payroll = () => {
           </div>
           
           <div className="p-8">
-            <PayslipContent employee={employee} salary={salary} sss={sss} philhealth={philhealth} pagibig={pagibig} cashAdvance={cashAdvance} totalDed={totalDed} netPay={netPay} monthYear={periodLabel} />
+            <PayslipContent employee={employee} salary={salary} incentive={incentive} sss={sss} philhealth={philhealth} pagibig={pagibig} cashAdvance={cashAdvance} totalDed={totalDed} netPay={netPay} monthYear={periodLabel} workDays={workDays} />
           </div>
         </div>
       </div>
     )
   }
   
-  const PayslipContent = ({ employee, salary, sss, philhealth, pagibig, cashAdvance, totalDed, netPay, monthYear }) => {
+  const PayslipContent = ({ employee, salary, incentive, sss, philhealth, pagibig, cashAdvance, totalDed, netPay, monthYear, workDays }) => {
     return (
       <div>
         {/* Header */}
@@ -311,6 +384,12 @@ const Payroll = () => {
             <span className="font-semibold text-gray-700 w-32">Department:</span>
             <span className="text-gray-900">{employee.department}</span>
           </div>
+          {workDays && (
+            <div className="flex">
+              <span className="font-semibold text-gray-700 w-32">Work Days:</span>
+              <span className="text-gray-900">{workDays}</span>
+            </div>
+          )}
         </div>
 
         {/* Earnings and Deductions */}
@@ -327,6 +406,12 @@ const Payroll = () => {
                 <td className="py-3 px-4 text-gray-900">{payPeriodType === 'weekly' ? 'Weekly Salary' : 'Basic Salary'}</td>
                 <td className="py-3 px-4 text-right text-gray-900 font-mono">₱{salary.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               </tr>
+              {incentive > 0 && (
+                <tr className="border-b border-gray-200">
+                  <td className="py-3 px-4 text-gray-900">Incentive</td>
+                  <td className="py-3 px-4 text-right text-gray-900 font-mono">₱{incentive.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>
+              )}
               <tr className="bg-gray-50 border-b border-gray-300">
                 <td className="py-2 px-4 font-semibold text-gray-900">Deductions</td>
                 <td className="py-2 px-4"></td>
@@ -387,7 +472,7 @@ const Payroll = () => {
           <h1 className="text-2xl font-bold tracking-tight dark:text-white text-slate-900">Payroll Management</h1>
           <p className="dark:text-gray-400 text-slate-600 text-sm mt-1">Process and manage employee payroll</p>
         </div>
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center flex-wrap">
           <div className="flex gap-2 bg-slate-100 dark:bg-spectro-bg border-2 dark:border-spectro-border border-slate-300 rounded-lg p-1.5">
             <button
               onClick={() => setPayPeriodType('monthly')}
@@ -410,12 +495,31 @@ const Payroll = () => {
               Weekly
             </button>
           </div>
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="px-4 py-2 dark:bg-white/5 bg-white border dark:border-spectro-border border-slate-300 rounded-lg dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple"
-          />
+          {payPeriodType === 'weekly' ? (
+            <>
+              <input
+                type="date"
+                value={weekStartDate}
+                onChange={(e) => setWeekStartDate(e.target.value)}
+                placeholder="Start Date"
+                className="px-4 py-2 dark:bg-white/5 bg-white border dark:border-spectro-border border-slate-300 rounded-lg dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple"
+              />
+              <input
+                type="date"
+                value={weekEndDate}
+                onChange={(e) => setWeekEndDate(e.target.value)}
+                placeholder="End Date"
+                className="px-4 py-2 dark:bg-white/5 bg-white border dark:border-spectro-border border-slate-300 rounded-lg dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple"
+              />
+            </>
+          ) : (
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="px-4 py-2 dark:bg-white/5 bg-white border dark:border-spectro-border border-slate-300 rounded-lg dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple"
+            />
+          )}
         </div>
       </div>
 
@@ -445,6 +549,7 @@ const Payroll = () => {
               <tr className="border-b dark:border-spectro-border border-slate-200">
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Employee</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Basic Salary</th>
+                <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Incentive</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">SSS</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">PhilHealth</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Pag-IBIG</th>
@@ -456,12 +561,13 @@ const Payroll = () => {
             <tbody>
               {employees.map((emp) => {
                 const salary = getSalaryAmount(emp)
+                const incentive = getIncentiveAmount(emp)
                 const sss = getSSSAmount(emp)
                 const philhealth = getDeductionAmount(emp.philhealth)
                 const pagibig = getDeductionAmount(emp.pagibig)
                 const cashAdvance = getDeductionAmount(emp.cash_advance)
                 const totalDed = sss + philhealth + pagibig + cashAdvance
-                const netPay = salary - totalDed
+                const netPay = salary + incentive - totalDed
                 
                 return (
                   <tr key={emp.id} className="border-b dark:border-spectro-border border-slate-100 dark:hover:bg-white/5 hover:bg-slate-50 transition-colors">
@@ -480,6 +586,34 @@ const Payroll = () => {
                       </div>
                     </td>
                     <td className="py-4 px-6 font-semibold dark:text-white text-slate-900 text-sm">₱{salary.toLocaleString()}</td>
+                    <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">
+                      {editingIncentive === emp.id ? (
+                        <input
+                          type="number"
+                          defaultValue={emp.incentive || 0}
+                          onBlur={(e) => updateIncentive(emp.id, e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              updateIncentive(emp.id, e.target.value)
+                            } else if (e.key === 'Escape') {
+                              setEditingIncentive(null)
+                            }
+                          }}
+                          autoFocus
+                          className="w-24 px-2 py-1 border border-spectro-teal rounded bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-spectro-teal"
+                        />
+                      ) : (
+                        <span 
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setEditingIncentive(emp.id)
+                          }}
+                          className="cursor-pointer hover:text-spectro-teal transition-colors"
+                        >
+                          ₱{incentive.toLocaleString()}
+                        </span>
+                      )}
+                    </td>
                     <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{sss.toLocaleString()}</td>
                     <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{philhealth.toLocaleString()}</td>
                     <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{pagibig.toLocaleString()}</td>
