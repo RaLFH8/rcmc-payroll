@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTheme } from './context/ThemeContext'
+import { supabase } from './lib/supabase'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
 import Employees from './pages/Employees'
@@ -10,6 +11,26 @@ import Settings from './pages/Settings'
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard')
   const { theme } = useTheme()
+
+  // Keep Supabase connection alive (prevents free tier from pausing)
+  useEffect(() => {
+    const keepAlive = async () => {
+      try {
+        // Simple query to keep connection active
+        await supabase.from('employees').select('count', { count: 'exact', head: true })
+      } catch (error) {
+        console.log('Keep-alive ping:', error.message)
+      }
+    }
+
+    // Ping every 5 minutes
+    const interval = setInterval(keepAlive, 5 * 60 * 1000)
+    
+    // Initial ping
+    keepAlive()
+
+    return () => clearInterval(interval)
+  }, [])
 
   const renderPage = () => {
     switch (currentPage) {
