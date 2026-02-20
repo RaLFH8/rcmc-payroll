@@ -8,6 +8,7 @@ const Payroll = () => {
   const [loading, setLoading] = useState(true)
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
   const [previewEmployee, setPreviewEmployee] = useState(null)
+  const [editingCashAdvance, setEditingCashAdvance] = useState(null)
 
   useEffect(() => {
     loadEmployees()
@@ -26,13 +27,24 @@ const Payroll = () => {
   }
 
   const calculateNetPay = (emp) => {
-    const deductions = Number(emp.sss || 0) + Number(emp.philhealth || 0) + Number(emp.pagibig || 0)
+    const deductions = Number(emp.sss || 0) + Number(emp.philhealth || 0) + Number(emp.pagibig || 0) + Number(emp.cash_advance || 0)
     return Number(emp.salary) - deductions
+  }
+
+  const updateCashAdvance = async (employeeId, newAmount) => {
+    try {
+      await db.updateEmployee(employeeId, { cash_advance: Number(newAmount) || 0 })
+      await loadEmployees()
+      setEditingCashAdvance(null)
+    } catch (error) {
+      console.error('Error updating cash advance:', error)
+      alert('Failed to update cash advance')
+    }
   }
 
   const downloadPayslipPDF = (employee) => {
     const doc = new jsPDF()
-    const totalDed = Number(employee.sss || 0) + Number(employee.philhealth || 0) + Number(employee.pagibig || 0)
+    const totalDed = Number(employee.sss || 0) + Number(employee.philhealth || 0) + Number(employee.pagibig || 0) + Number(employee.cash_advance || 0)
     const netPay = Number(employee.salary) - totalDed
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     const dateIssued = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -132,6 +144,12 @@ const Payroll = () => {
     doc.text('  Pag-IBIG Contribution', 25, yPos)
     doc.text(formatAmount(employee.pagibig || 0), 185, yPos, { align: 'right' })
     
+    yPos += 7
+    
+    // Cash Advance
+    doc.text('  Cash Advance', 25, yPos)
+    doc.text(formatAmount(employee.cash_advance || 0), 185, yPos, { align: 'right' })
+    
     yPos += 10
     
     // Total Deductions
@@ -172,7 +190,7 @@ const Payroll = () => {
 
   const totalPayroll = employees.reduce((sum, emp) => sum + Number(emp.salary), 0)
   const totalDeductions = employees.reduce((sum, emp) => 
-    sum + Number(emp.sss || 0) + Number(emp.philhealth || 0) + Number(emp.pagibig || 0), 0
+    sum + Number(emp.sss || 0) + Number(emp.philhealth || 0) + Number(emp.pagibig || 0) + Number(emp.cash_advance || 0), 0
   )
   const totalNetPay = totalPayroll - totalDeductions
 
@@ -188,7 +206,7 @@ const Payroll = () => {
   }
 
   const PayslipPreview = ({ employee }) => {
-    const totalDed = Number(employee.sss || 0) + Number(employee.philhealth || 0) + Number(employee.pagibig || 0)
+    const totalDed = Number(employee.sss || 0) + Number(employee.philhealth || 0) + Number(employee.pagibig || 0) + Number(employee.cash_advance || 0)
     const netPay = Number(employee.salary) - totalDed
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     
@@ -290,6 +308,10 @@ const Payroll = () => {
                 <td className="py-2 px-4 pl-8 text-gray-700">Pag-IBIG Contribution</td>
                 <td className="py-2 px-4 text-right text-gray-900 font-mono">₱{(employee.pagibig || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               </tr>
+              <tr className="border-b border-gray-300">
+                <td className="py-2 px-4 pl-8 text-gray-700">Cash Advance</td>
+                <td className="py-2 px-4 text-right text-gray-900 font-mono">₱{(employee.cash_advance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              </tr>
               <tr className="bg-gray-100">
                 <td className="py-3 px-4 font-semibold text-gray-900">Total Deductions</td>
                 <td className="py-3 px-4 text-right text-gray-900 font-semibold font-mono">₱{totalDed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
@@ -367,13 +389,14 @@ const Payroll = () => {
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">SSS</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">PhilHealth</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Pag-IBIG</th>
+                <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Cash Advance</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Total Deductions</th>
                 <th className="text-left py-4 px-6 text-xs font-semibold dark:text-gray-500 text-slate-600 uppercase tracking-wider">Net Pay</th>
               </tr>
             </thead>
             <tbody>
               {employees.map((emp) => {
-                const totalDed = Number(emp.sss || 0) + Number(emp.philhealth || 0) + Number(emp.pagibig || 0)
+                const totalDed = Number(emp.sss || 0) + Number(emp.philhealth || 0) + Number(emp.pagibig || 0) + Number(emp.cash_advance || 0)
                 const netPay = Number(emp.salary) - totalDed
                 
                 return (
@@ -396,6 +419,34 @@ const Payroll = () => {
                     <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{(emp.sss || 0).toLocaleString()}</td>
                     <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{(emp.philhealth || 0).toLocaleString()}</td>
                     <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{(emp.pagibig || 0).toLocaleString()}</td>
+                    <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">
+                      {editingCashAdvance === emp.id ? (
+                        <input
+                          type="number"
+                          defaultValue={emp.cash_advance || 0}
+                          onBlur={(e) => updateCashAdvance(emp.id, e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              updateCashAdvance(emp.id, e.target.value)
+                            } else if (e.key === 'Escape') {
+                              setEditingCashAdvance(null)
+                            }
+                          }}
+                          autoFocus
+                          className="w-24 px-2 py-1 border border-spectro-purple rounded bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-spectro-purple"
+                        />
+                      ) : (
+                        <span 
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setEditingCashAdvance(emp.id)
+                          }}
+                          className="cursor-pointer hover:text-spectro-purple transition-colors"
+                        >
+                          ₱{(emp.cash_advance || 0).toLocaleString()}
+                        </span>
+                      )}
+                    </td>
                     <td className="py-4 px-6 font-semibold text-red-400 text-sm">₱{totalDed.toLocaleString()}</td>
                     <td className="py-4 px-6 font-bold text-spectro-teal text-sm">₱{netPay.toLocaleString()}</td>
                   </tr>
