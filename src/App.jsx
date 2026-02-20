@@ -52,7 +52,7 @@ function App() {
   return (
     <div className={`flex min-h-screen ${theme === 'dark' ? 'bg-spectro-bg' : 'bg-slate-50'}`}>
       <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 ml-64 p-8 overflow-x-hidden">
         {renderPage()}
       </main>
     </div>
