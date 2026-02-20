@@ -9,6 +9,7 @@ const Payroll = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
   const [previewEmployee, setPreviewEmployee] = useState(null)
   const [editingCashAdvance, setEditingCashAdvance] = useState(null)
+  const [payPeriodType, setPayPeriodType] = useState('monthly') // 'monthly' or 'weekly'
 
   useEffect(() => {
     loadEmployees()
@@ -27,8 +28,13 @@ const Payroll = () => {
   }
 
   const calculateNetPay = (emp) => {
+    const salary = payPeriodType === 'weekly' ? Number(emp.salary) / 4 : Number(emp.salary)
     const deductions = Number(emp.sss || 0) + Number(emp.philhealth || 0) + Number(emp.pagibig || 0) + Number(emp.cash_advance || 0)
-    return Number(emp.salary) - deductions
+    return salary - deductions
+  }
+
+  const getSalaryAmount = (emp) => {
+    return payPeriodType === 'weekly' ? Number(emp.salary) / 4 : Number(emp.salary)
   }
 
   const updateCashAdvance = async (employeeId, newAmount) => {
@@ -44,10 +50,12 @@ const Payroll = () => {
 
   const downloadPayslipPDF = (employee) => {
     const doc = new jsPDF()
+    const salary = payPeriodType === 'weekly' ? Number(employee.salary) / 4 : Number(employee.salary)
     const totalDed = Number(employee.sss || 0) + Number(employee.philhealth || 0) + Number(employee.pagibig || 0) + Number(employee.cash_advance || 0)
-    const netPay = Number(employee.salary) - totalDed
+    const netPay = salary - totalDed
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     const dateIssued = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    const periodLabel = payPeriodType === 'weekly' ? `Weekly - ${monthYear}` : monthYear
     
     // Format currency without peso symbol (jsPDF doesn't handle it well)
     const formatAmount = (amount) => {
@@ -83,7 +91,7 @@ const Payroll = () => {
     doc.setFont('helvetica', 'bold')
     doc.text('Pay Period:', 120, 58)
     doc.setFont('helvetica', 'normal')
-    doc.text(monthYear, 150, 58)
+    doc.text(periodLabel, 150, 58)
     
     doc.setFont('helvetica', 'bold')
     doc.text('Position:', 20, 65)
@@ -114,8 +122,8 @@ const Payroll = () => {
     
     // Basic Salary
     doc.setFont('helvetica', 'normal')
-    doc.text('Basic Salary', 25, yPos)
-    doc.text(formatAmount(employee.salary), 185, yPos, { align: 'right' })
+    doc.text(payPeriodType === 'weekly' ? 'Weekly Salary' : 'Basic Salary', 25, yPos)
+    doc.text(formatAmount(salary), 185, yPos, { align: 'right' })
     
     yPos += 8
     
@@ -188,7 +196,7 @@ const Payroll = () => {
     setPreviewEmployee(null)
   }
 
-  const totalPayroll = employees.reduce((sum, emp) => sum + Number(emp.salary), 0)
+  const totalPayroll = employees.reduce((sum, emp) => sum + getSalaryAmount(emp), 0)
   const totalDeductions = employees.reduce((sum, emp) => 
     sum + Number(emp.sss || 0) + Number(emp.philhealth || 0) + Number(emp.pagibig || 0) + Number(emp.cash_advance || 0), 0
   )
@@ -206,9 +214,11 @@ const Payroll = () => {
   }
 
   const PayslipPreview = ({ employee }) => {
+    const salary = payPeriodType === 'weekly' ? Number(employee.salary) / 4 : Number(employee.salary)
     const totalDed = Number(employee.sss || 0) + Number(employee.philhealth || 0) + Number(employee.pagibig || 0) + Number(employee.cash_advance || 0)
-    const netPay = Number(employee.salary) - totalDed
+    const netPay = salary - totalDed
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    const periodLabel = payPeriodType === 'weekly' ? `Weekly - ${monthYear}` : monthYear
     
     return (
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -234,14 +244,14 @@ const Payroll = () => {
           </div>
           
           <div className="p-8">
-            <PayslipContent employee={employee} totalDed={totalDed} netPay={netPay} monthYear={monthYear} />
+            <PayslipContent employee={employee} salary={salary} totalDed={totalDed} netPay={netPay} monthYear={periodLabel} />
           </div>
         </div>
       </div>
     )
   }
   
-  const PayslipContent = ({ employee, totalDed, netPay, monthYear }) => {
+  const PayslipContent = ({ employee, salary, totalDed, netPay, monthYear }) => {
     return (
       <div>
         {/* Header */}
@@ -290,8 +300,8 @@ const Payroll = () => {
             </thead>
             <tbody>
               <tr className="border-b border-gray-200">
-                <td className="py-3 px-4 text-gray-900">Basic Salary</td>
-                <td className="py-3 px-4 text-right text-gray-900 font-mono">₱{employee.salary.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td className="py-3 px-4 text-gray-900">{payPeriodType === 'weekly' ? 'Weekly Salary' : 'Basic Salary'}</td>
+                <td className="py-3 px-4 text-right text-gray-900 font-mono">₱{salary.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
               </tr>
               <tr className="bg-gray-50 border-b border-gray-300">
                 <td className="py-2 px-4 font-semibold text-gray-900">Deductions</td>
@@ -353,12 +363,36 @@ const Payroll = () => {
           <h1 className="text-2xl font-bold tracking-tight dark:text-white text-slate-900">Payroll Management</h1>
           <p className="dark:text-gray-400 text-slate-600 text-sm mt-1">Process and manage employee payroll</p>
         </div>
-        <input
-          type="month"
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-          className="px-4 py-2 dark:bg-white/5 bg-white border dark:border-spectro-border border-slate-300 rounded-lg dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple"
-        />
+        <div className="flex gap-3 items-center">
+          <div className="flex gap-2 bg-white dark:bg-white/5 border dark:border-spectro-border border-slate-300 rounded-lg p-1">
+            <button
+              onClick={() => setPayPeriodType('monthly')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                payPeriodType === 'monthly'
+                  ? 'bg-spectro-purple text-white'
+                  : 'dark:text-gray-400 text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setPayPeriodType('weekly')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                payPeriodType === 'weekly'
+                  ? 'bg-spectro-purple text-white'
+                  : 'dark:text-gray-400 text-slate-600 hover:bg-slate-100 dark:hover:bg-white/5'
+              }`}
+            >
+              Weekly
+            </button>
+          </div>
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="px-4 py-2 dark:bg-white/5 bg-white border dark:border-spectro-border border-slate-300 rounded-lg dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -397,8 +431,9 @@ const Payroll = () => {
             </thead>
             <tbody>
               {employees.map((emp) => {
+                const salary = getSalaryAmount(emp)
                 const totalDed = Number(emp.sss || 0) + Number(emp.philhealth || 0) + Number(emp.pagibig || 0) + Number(emp.cash_advance || 0)
-                const netPay = Number(emp.salary) - totalDed
+                const netPay = salary - totalDed
                 
                 return (
                   <tr key={emp.id} className="border-b dark:border-spectro-border border-slate-100 dark:hover:bg-white/5 hover:bg-slate-50 transition-colors">
@@ -416,7 +451,7 @@ const Payroll = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-6 font-semibold dark:text-white text-slate-900 text-sm">₱{emp.salary.toLocaleString()}</td>
+                    <td className="py-4 px-6 font-semibold dark:text-white text-slate-900 text-sm">₱{salary.toLocaleString()}</td>
                     <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{(emp.sss || 0).toLocaleString()}</td>
                     <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{(emp.philhealth || 0).toLocaleString()}</td>
                     <td className="py-4 px-6 dark:text-gray-300 text-slate-700 text-sm">₱{(emp.pagibig || 0).toLocaleString()}</td>
