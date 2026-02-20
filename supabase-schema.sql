@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS employees (
   salary NUMERIC NOT NULL,
   status TEXT DEFAULT 'Active',
   join_date DATE NOT NULL,
+  sss_number TEXT,
   sss NUMERIC DEFAULT 0,
   philhealth NUMERIC DEFAULT 0,
   pagibig NUMERIC DEFAULT 0,
