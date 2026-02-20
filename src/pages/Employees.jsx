@@ -205,13 +205,15 @@ const Employees = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleEdit(emp)}
-                        className="p-2 text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"
+                        className="p-2 bg-blue-500 text-white hover:bg-blue-600 rounded-lg transition-colors shadow-sm"
+                        title="Edit Employee"
                       >
                         <Edit2 size={18} />
                       </button>
                       <button
                         onClick={() => handleDelete(emp.id)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 bg-red-500 text-white hover:bg-red-600 rounded-lg transition-colors shadow-sm"
+                        title="Delete Employee"
                       >
                         <Trash2 size={18} />
                       </button>
