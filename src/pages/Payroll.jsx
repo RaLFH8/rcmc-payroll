@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Printer, X } from 'lucide-react'
+import { Download, X } from 'lucide-react'
 import { db } from '../lib/supabase'
+import jsPDF from 'jspdf'
 
 const Payroll = () => {
   const [employees, setEmployees] = useState([])
@@ -29,8 +30,136 @@ const Payroll = () => {
     return Number(emp.salary) - deductions
   }
 
-  const printPayslip = () => {
-    window.print()
+  const downloadPayslipPDF = (employee) => {
+    const doc = new jsPDF()
+    const totalDed = Number(employee.sss || 0) + Number(employee.philhealth || 0) + Number(employee.pagibig || 0)
+    const netPay = Number(employee.salary) - totalDed
+    const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    const dateIssued = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    
+    // Header
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.text('RIZALCARE MEDICAL CLINIC', 105, 20, { align: 'center' })
+    
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.text('GF IPDL8 Bldg., 25 G. Dikit St., Brgy. Bagumbayan, Pililla, Rizal', 105, 27, { align: 'center' })
+    doc.text('Phone: 0938-775-1504 / 0976-273-9445', 105, 32, { align: 'center' })
+    
+    // Line under header
+    doc.setLineWidth(0.5)
+    doc.line(20, 36, 190, 36)
+    
+    // Title
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('PAYSLIP', 105, 45, { align: 'center' })
+    
+    // Employee Info
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Employee Name:', 20, 58)
+    doc.setFont('helvetica', 'normal')
+    doc.text(employee.name, 60, 58)
+    
+    doc.setFont('helvetica', 'bold')
+    doc.text('Pay Period:', 120, 58)
+    doc.setFont('helvetica', 'normal')
+    doc.text(monthYear, 150, 58)
+    
+    doc.setFont('helvetica', 'bold')
+    doc.text('Position:', 20, 65)
+    doc.setFont('helvetica', 'normal')
+    doc.text(employee.position, 60, 65)
+    
+    doc.setFont('helvetica', 'bold')
+    doc.text('Date Issued:', 120, 65)
+    doc.setFont('helvetica', 'normal')
+    doc.text(dateIssued, 150, 65)
+    
+    doc.setFont('helvetica', 'bold')
+    doc.text('Department:', 20, 72)
+    doc.setFont('helvetica', 'normal')
+    doc.text(employee.department, 60, 72)
+    
+    // Table
+    let yPos = 85
+    
+    // Table header
+    doc.setFillColor(240, 240, 240)
+    doc.rect(20, yPos, 170, 8, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.text('Description', 25, yPos + 5)
+    doc.text('Amount', 170, yPos + 5, { align: 'right' })
+    
+    yPos += 10
+    
+    // Basic Salary
+    doc.setFont('helvetica', 'normal')
+    doc.text('Basic Salary', 25, yPos)
+    doc.text('₱' + employee.salary.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 185, yPos, { align: 'right' })
+    
+    yPos += 8
+    
+    // Deductions header
+    doc.setFillColor(250, 250, 250)
+    doc.rect(20, yPos - 3, 170, 8, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.text('Deductions', 25, yPos + 2)
+    
+    yPos += 10
+    
+    // SSS
+    doc.setFont('helvetica', 'normal')
+    doc.text('  SSS Contribution', 25, yPos)
+    doc.text('₱' + (employee.sss || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 185, yPos, { align: 'right' })
+    
+    yPos += 7
+    
+    // PhilHealth
+    doc.text('  PhilHealth Contribution', 25, yPos)
+    doc.text('₱' + (employee.philhealth || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 185, yPos, { align: 'right' })
+    
+    yPos += 7
+    
+    // Pag-IBIG
+    doc.text('  Pag-IBIG Contribution', 25, yPos)
+    doc.text('₱' + (employee.pagibig || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 185, yPos, { align: 'right' })
+    
+    yPos += 10
+    
+    // Total Deductions
+    doc.setFillColor(240, 240, 240)
+    doc.rect(20, yPos - 3, 170, 8, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.text('Total Deductions', 25, yPos + 2)
+    doc.text('₱' + totalDed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 185, yPos + 2, { align: 'right' })
+    
+    yPos += 15
+    
+    // Net Pay Box
+    doc.setFillColor(240, 240, 240)
+    doc.setLineWidth(1)
+    doc.rect(20, yPos, 170, 12, 'FD')
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text('NET PAY:', 25, yPos + 8)
+    doc.setFontSize(14)
+    doc.text('₱' + netPay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 185, yPos + 8, { align: 'right' })
+    
+    // Signatures
+    yPos += 40
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.line(25, yPos, 80, yPos)
+    doc.text('Employee Signature', 52, yPos + 5, { align: 'center' })
+    
+    doc.line(110, yPos, 165, yPos)
+    doc.text('Authorized Signature', 137, yPos + 5, { align: 'center' })
+    
+    // Save PDF
+    doc.save(`Payslip_${employee.name.replace(/\s+/g, '_')}_${monthYear.replace(/\s+/g, '_')}.pdf`)
   }
 
   const totalPayroll = employees.reduce((sum, emp) => sum + Number(emp.salary), 0)
@@ -56,40 +185,32 @@ const Payroll = () => {
     const monthYear = new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     
     return (
-      <>
-        {/* Modal - Hidden when printing */}
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 print:hidden">
-          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900">Payslip Preview</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={printPayslip}
-                  className="flex items-center gap-2 px-4 py-2 bg-spectro-purple text-white rounded-lg hover:bg-spectro-purple/90 transition-colors"
-                >
-                  <Printer size={18} />
-                  Print
-                </button>
-                <button
-                  onClick={() => setPreviewEmployee(null)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-8">
-              <PayslipContent employee={employee} totalDed={totalDed} netPay={netPay} monthYear={monthYear} />
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-gray-900">Payslip Preview</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => downloadPayslipPDF(employee)}
+                className="flex items-center gap-2 px-4 py-2 bg-spectro-purple text-white rounded-lg hover:bg-spectro-purple/90 transition-colors"
+              >
+                <Download size={18} />
+                Download PDF
+              </button>
+              <button
+                onClick={() => setPreviewEmployee(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
             </div>
           </div>
+          
+          <div className="p-8">
+            <PayslipContent employee={employee} totalDed={totalDed} netPay={netPay} monthYear={monthYear} />
+          </div>
         </div>
-        
-        {/* Print version - Only visible when printing */}
-        <div className="hidden print:block print:p-8">
-          <PayslipContent employee={employee} totalDed={totalDed} netPay={netPay} monthYear={monthYear} />
-        </div>
-      </>
+      </div>
     )
   }
   
@@ -195,7 +316,7 @@ const Payroll = () => {
   }
 
   return (
-    <div className="space-y-6 print:hidden">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight dark:text-white text-slate-900">Payroll Management</h1>
