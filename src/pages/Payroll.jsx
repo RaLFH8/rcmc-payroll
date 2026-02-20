@@ -225,7 +225,7 @@ const Payroll = () => {
               </button>
               <button
                 onClick={() => setPreviewEmployee(null)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-700 hover:text-gray-900"
               >
                 <X size={20} />
               </button>
