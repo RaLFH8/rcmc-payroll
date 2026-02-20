@@ -1,6 +1,9 @@
 import { LayoutDashboard, Users, DollarSign, FileText, Settings, Bell, MessageSquare, LogOut } from 'lucide-react'
+import { useTheme } from '../context/ThemeContext'
 
 const Sidebar = ({ currentPage, setCurrentPage }) => {
+  const { theme } = useTheme()
+  
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'employees', label: 'Employees', icon: Users },
@@ -10,16 +13,26 @@ const Sidebar = ({ currentPage, setCurrentPage }) => {
   ]
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-spectro-sidebar border-r border-spectro-border flex flex-col">
+    <aside className={`fixed left-0 top-0 h-screen w-64 border-r flex flex-col ${
+      theme === 'dark' 
+        ? 'bg-spectro-sidebar border-spectro-border' 
+        : 'bg-white border-slate-200'
+    }`}>
       {/* Logo */}
-      <div className="p-6 border-b border-spectro-border">
+      <div className={`p-6 border-b ${theme === 'dark' ? 'border-spectro-border' : 'border-slate-200'}`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center glow-primary">
-            <span className="text-white text-xl font-bold">S</span>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+            theme === 'dark' ? 'gradient-primary glow-primary' : 'gradient-light'
+          }`}>
+            <span className="text-white text-xl font-bold">R</span>
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white tracking-tight">Spectro</h1>
-            <p className="text-xs text-gray-500">Payroll System</p>
+            <h1 className={`text-lg font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+              RCMC
+            </h1>
+            <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>
+              Payroll System
+            </p>
           </div>
         </div>
       </div>
@@ -35,8 +48,12 @@ const Sidebar = ({ currentPage, setCurrentPage }) => {
               onClick={() => setCurrentPage(item.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium tracking-tight ${
                 isActive
-                  ? 'gradient-primary text-white glow-primary'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  ? theme === 'dark'
+                    ? 'gradient-primary text-white glow-primary'
+                    : 'gradient-light text-white shadow-md'
+                  : theme === 'dark'
+                    ? 'text-gray-400 hover:text-white hover:bg-white/5'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               <Icon size={20} strokeWidth={2} />
@@ -47,27 +64,45 @@ const Sidebar = ({ currentPage, setCurrentPage }) => {
       </nav>
 
       {/* Bottom Section */}
-      <div className="p-4 border-t border-spectro-border space-y-3">
+      <div className={`p-4 border-t space-y-3 ${theme === 'dark' ? 'border-spectro-border' : 'border-slate-200'}`}>
         {/* Quick Actions */}
         <div className="flex items-center gap-2">
-          <button className="flex-1 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all">
+          <button className={`flex-1 h-10 rounded-lg flex items-center justify-center transition-all ${
+            theme === 'dark'
+              ? 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900'
+          }`}>
             <Bell size={18} />
           </button>
-          <button className="flex-1 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-all">
+          <button className={`flex-1 h-10 rounded-lg flex items-center justify-center transition-all ${
+            theme === 'dark'
+              ? 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900'
+          }`}>
             <MessageSquare size={18} />
           </button>
         </div>
 
         {/* User Profile */}
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all cursor-pointer">
-          <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center glow-primary">
+        <div className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer ${
+          theme === 'dark'
+            ? 'bg-white/5 hover:bg-white/10'
+            : 'bg-slate-100 hover:bg-slate-200'
+        }`}>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+            theme === 'dark' ? 'gradient-primary glow-primary' : 'gradient-light'
+          }`}>
             <span className="text-white font-semibold text-sm">A</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white truncate">Admin User</p>
-            <p className="text-xs text-gray-500 truncate">admin@spectro.com</p>
+            <p className={`text-sm font-semibold truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+              Admin User
+            </p>
+            <p className={`text-xs truncate ${theme === 'dark' ? 'text-gray-500' : 'text-slate-500'}`}>
+              rizalcaremedicalclinic@gmail.com
+            </p>
           </div>
-          <LogOut size={16} className="text-gray-500" />
+          <LogOut size={16} className={theme === 'dark' ? 'text-gray-500' : 'text-slate-400'} />
         </div>
       </div>
     </aside>

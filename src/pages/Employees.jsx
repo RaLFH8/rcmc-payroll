@@ -16,6 +16,7 @@ const Employees = () => {
     salary: '',
     status: 'Active',
     join_date: '',
+    sss_number: '',
     sss: '',
     philhealth: '',
     pagibig: ''
@@ -42,10 +43,13 @@ const Employees = () => {
     e.preventDefault()
     
     try {
+      // Auto-calculate SSS: 15% of salary, employee pays 7.5%
+      const sssContribution = parseFloat(formData.salary) * 0.075
+      
       const employeeData = {
         ...formData,
         salary: parseFloat(formData.salary),
-        sss: parseFloat(formData.sss) || 0,
+        sss: sssContribution,
         philhealth: parseFloat(formData.philhealth) || 0,
         pagibig: parseFloat(formData.pagibig) || 0
       }
@@ -74,6 +78,7 @@ const Employees = () => {
       salary: employee.salary,
       status: employee.status,
       join_date: employee.join_date,
+      sss_number: employee.sss_number || '',
       sss: employee.sss || '',
       philhealth: employee.philhealth || '',
       pagibig: employee.pagibig || ''
@@ -104,6 +109,7 @@ const Employees = () => {
       salary: '',
       status: 'Active',
       join_date: '',
+      sss_number: '',
       sss: '',
       philhealth: '',
       pagibig: ''
@@ -240,7 +246,7 @@ const Employees = () => {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   />
                 </div>
                 <div>
@@ -250,7 +256,7 @@ const Employees = () => {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   />
                 </div>
               </div>
@@ -263,7 +269,7 @@ const Employees = () => {
                     required
                     value={formData.position}
                     onChange={(e) => setFormData({...formData, position: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   />
                 </div>
                 <div>
@@ -272,14 +278,14 @@ const Employees = () => {
                     required
                     value={formData.department}
                     onChange={(e) => setFormData({...formData, department: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   >
                     <option value="">Select Department</option>
-                    <option value="Engineering">Engineering</option>
-                    <option value="Operations">Operations</option>
-                    <option value="Design">Design</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="HR">HR</option>
+                    <option value="Medical">Medical</option>
+                    <option value="Nursing">Nursing</option>
+                    <option value="Laboratory">Laboratory</option>
+                    <option value="Pharmacy">Pharmacy</option>
+                    <option value="Administration">Administration</option>
                     <option value="Finance">Finance</option>
                   </select>
                 </div>
@@ -293,7 +299,7 @@ const Employees = () => {
                     required
                     value={formData.salary}
                     onChange={(e) => setFormData({...formData, salary: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   />
                 </div>
                 <div>
@@ -303,39 +309,56 @@ const Employees = () => {
                     required
                     value={formData.join_date}
                     onChange={(e) => setFormData({...formData, join_date: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                   />
                 </div>
               </div>
 
               <div className="bg-gray-50 rounded-xl p-4 mb-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Government Deductions</h3>
+                <p className="text-xs text-gray-500 mb-3">SSS is auto-calculated at 7.5% of salary. PhilHealth and Pag-IBIG can be entered manually.</p>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">SSS Number</label>
+                  <input
+                    type="text"
+                    placeholder="XX-XXXXXXX-X"
+                    value={formData.sss_number}
+                    onChange={(e) => setFormData({...formData, sss_number: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
+                  />
+                </div>
+                
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">SSS</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">SSS (Auto)</label>
                     <input
-                      type="number"
-                      value={formData.sss}
-                      onChange={(e) => setFormData({...formData, sss: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      type="text"
+                      disabled
+                      value={formData.salary ? `₱${(parseFloat(formData.salary) * 0.075).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '₱0.00'}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-100 text-gray-600"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">PhilHealth</label>
                     <input
                       type="number"
+                      step="0.01"
+                      placeholder="0.00"
                       value={formData.philhealth}
                       onChange={(e) => setFormData({...formData, philhealth: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Pag-IBIG</label>
                     <input
                       type="number"
+                      step="0.01"
+                      placeholder="0.00"
                       value={formData.pagibig}
                       onChange={(e) => setFormData({...formData, pagibig: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                     />
                   </div>
                 </div>
@@ -346,7 +369,7 @@ const Employees = () => {
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({...formData, status: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-900 bg-white"
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
@@ -363,7 +386,7 @@ const Employees = () => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-6 py-3 border border-gray-200 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+                  className="px-8 py-3 border-2 border-gray-300 bg-white text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>

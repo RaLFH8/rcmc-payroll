@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTheme } from './context/ThemeContext'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
 import Employees from './pages/Employees'
@@ -8,11 +9,12 @@ import Settings from './pages/Settings'
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard')
+  const { theme } = useTheme()
 
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <Dashboard />
+        return <Dashboard setCurrentPage={setCurrentPage} />
       case 'employees':
         return <Employees />
       case 'payroll':
@@ -22,12 +24,12 @@ function App() {
       case 'settings':
         return <Settings />
       default:
-        return <Dashboard />
+        return <Dashboard setCurrentPage={setCurrentPage} />
     }
   }
 
   return (
-    <div className="flex min-h-screen bg-spectro-bg">
+    <div className={`flex min-h-screen ${theme === 'dark' ? 'bg-spectro-bg' : 'bg-slate-50'}`}>
       <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
       <main className="flex-1 ml-64 p-8">
         {renderPage()}

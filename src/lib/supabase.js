@@ -72,65 +72,9 @@ export const db = {
     return data
   },
 
-  // Initialize sample data
+  // Initialize sample data (disabled - start with empty database)
   async initializeSampleData() {
-    const { count } = await supabase
-      .from('employees')
-      .select('*', { count: 'exact', head: true })
-    
-    if (count === 0) {
-      const sampleEmployees = [
-        {
-          name: 'Darlene Steffy',
-          email: 'darlene@spectro.com',
-          position: 'Software Engineer',
-          department: 'Engineering',
-          salary: 85000,
-          status: 'Active',
-          join_date: '2023-01-15',
-          sss: 2500,
-          philhealth: 1500,
-          pagibig: 200
-        },
-        {
-          name: 'Darrell Steward',
-          email: 'darrell@spectro.com',
-          position: 'Business Analyst',
-          department: 'Operations',
-          salary: 65000,
-          status: 'Active',
-          join_date: '2023-03-20',
-          sss: 2000,
-          philhealth: 1200,
-          pagibig: 200
-        },
-        {
-          name: 'Nessa Cooper',
-          email: 'nessa@spectro.com',
-          position: 'Product Designer',
-          department: 'Design',
-          salary: 75000,
-          status: 'Active',
-          join_date: '2023-02-10',
-          sss: 2200,
-          philhealth: 1300,
-          pagibig: 200
-        },
-        {
-          name: 'Marvin McKinney',
-          email: 'marvin@spectro.com',
-          position: 'Marketing Manager',
-          department: 'Marketing',
-          salary: 70000,
-          status: 'Active',
-          join_date: '2023-04-05',
-          sss: 2100,
-          philhealth: 1250,
-          pagibig: 200
-        }
-      ]
-
-      await supabase.from('employees').insert(sampleEmployees)
-    }
+    // No sample data - users will add their own employees
+    return
   }
 }
