@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react'
 import { DollarSign, Users, TrendingUp, Wallet } from 'lucide-react'
 import StatCard from '../components/StatCard'
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js'
-import { Bar, Doughnut } from 'react-chartjs-2'
+import { AreaChart, Area, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import { db } from '../lib/supabase'
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend)
 
 const Dashboard = () => {
   const [employees, setEmployees] = useState([])
@@ -45,151 +42,209 @@ const Dashboard = () => {
     }
   }
 
-  const barChartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [{
-      label: 'Monthly Payroll',
-      data: [450000, 480000, 520000, 490000, 550000, 580000],
-      backgroundColor: 'rgba(102, 126, 234, 0.8)',
-      borderRadius: 8,
-    }]
-  }
+  // Chart data
+  const areaChartData = [
+    { month: 'Jan', amount: 450000 },
+    { month: 'Feb', amount: 480000 },
+    { month: 'Mar', amount: 520000 },
+    { month: 'Apr', amount: 490000 },
+    { month: 'May', amount: 550000 },
+    { month: 'Jun', amount: 580000 },
+  ]
 
-  const doughnutData = {
-    labels: ['Engineering', 'Operations', 'Design', 'Marketing'],
-    datasets: [{
-      data: [35, 25, 20, 20],
-      backgroundColor: [
-        'rgba(102, 126, 234, 0.8)',
-        'rgba(118, 75, 162, 0.8)',
-        'rgba(79, 172, 254, 0.8)',
-        'rgba(250, 112, 154, 0.8)',
-      ],
-      borderWidth: 0,
-    }]
-  }
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false
-      }
-    }
-  }
+  const pieChartData = [
+    { name: 'Engineering', value: 35, color: '#A855F7' },
+    { name: 'Operations', value: 25, color: '#2DD4BF' },
+    { name: 'Design', value: 20, color: '#EC4899' },
+    { name: 'Marketing', value: 20, color: '#F59E0B' },
+  ]
 
   if (loading) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading dashboard...</p>
+          <div className="w-16 h-16 border-4 border-spectro-purple border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading dashboard...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard Overview</h1>
-        <p className="text-gray-500">Welcome back! Here's what's happening today.</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-400 mb-1">Welcome back, Athan 👋</p>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard Overview</h1>
+        </div>
+        <button className="px-6 py-3 gradient-primary rounded-xl text-white font-semibold text-sm glow-primary hover:opacity-90 transition-opacity">
+          Create a Report →
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="Total Payroll"
-          value={`₱${stats.totalPayroll.toLocaleString()}`}
-          change="+8.2%"
-          icon={DollarSign}
-          gradient="gradient-primary"
-        />
-        <StatCard
-          title="Total Employees"
-          value={stats.totalEmployees}
-          change="+12 this month"
-          icon={Users}
-          gradient="bg-gradient-to-br from-pink-500 to-rose-500"
-        />
-        <StatCard
-          title="Active Tax"
-          value={`₱${stats.activeTax.toLocaleString()}`}
-          change="+5.1%"
-          icon={TrendingUp}
-          gradient="bg-gradient-to-br from-cyan-500 to-blue-500"
-        />
-        <StatCard
-          title="Net Pay"
-          value={`₱${stats.netPay.toLocaleString()}`}
-          change="+7.8%"
-          icon={Wallet}
-          gradient="bg-gradient-to-br from-amber-500 to-orange-500"
-        />
+      {/* Stats Grid - 12 column layout */}
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-3">
+          <StatCard
+            title="Total Payroll"
+            value={`₱${stats.totalPayroll.toLocaleString()}`}
+            change="+8.2%"
+            icon={DollarSign}
+            gradient="gradient-primary"
+          />
+        </div>
+        <div className="col-span-3">
+          <StatCard
+            title="Total Employees"
+            value={stats.totalEmployees}
+            change="+12"
+            icon={Users}
+            gradient="bg-gradient-to-br from-pink-500 to-rose-500"
+          />
+        </div>
+        <div className="col-span-3">
+          <StatCard
+            title="Active Tax"
+            value={`₱${stats.activeTax.toLocaleString()}`}
+            change="+5.1%"
+            icon={TrendingUp}
+            gradient="bg-gradient-to-br from-cyan-500 to-blue-500"
+          />
+        </div>
+        <div className="col-span-3">
+          <StatCard
+            title="Net Pay"
+            value={`₱${stats.netPay.toLocaleString()}`}
+            change="+7.8%"
+            icon={Wallet}
+            gradient="bg-gradient-to-br from-amber-500 to-orange-500"
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+      {/* Charts Row - 12 column layout */}
+      <div className="grid grid-cols-12 gap-6">
+        {/* Main Chart - 8 columns */}
+        <div className="col-span-8 glass-card rounded-2xl p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Monthly Payroll Trend</h2>
-            <select className="px-4 py-2 border border-gray-200 rounded-lg text-sm">
+            <h2 className="text-xl font-bold text-white tracking-tight">Payroll Expenses Breakdown</h2>
+            <select className="px-4 py-2 bg-white/5 border border-spectro-border rounded-lg text-sm text-gray-400 focus:outline-none focus:border-spectro-purple">
               <option>Last 6 Months</option>
               <option>Last Year</option>
             </select>
           </div>
-          <div className="h-80">
-            <Bar data={barChartData} options={chartOptions} />
-          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={areaChartData}>
+              <defs>
+                <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#A855F7" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#2DD4BF" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <XAxis dataKey="month" stroke="#6B7280" style={{ fontSize: '12px' }} />
+              <YAxis stroke="#6B7280" style={{ fontSize: '12px' }} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1A1C2E', 
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '8px',
+                  color: '#fff'
+                }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="amount" 
+                stroke="#A855F7" 
+                strokeWidth={3}
+                fill="url(#colorGradient)"
+                dot={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Department Distribution</h2>
-          <div className="h-80 flex items-center justify-center">
-            <Doughnut data={doughnutData} options={chartOptions} />
+        {/* Pie Chart - 4 columns */}
+        <div className="col-span-4 glass-card rounded-2xl p-6">
+          <h2 className="text-xl font-bold text-white tracking-tight mb-6">Department Distribution</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={pieChartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={100}
+                paddingAngle={2}
+                dataKey="value"
+              >
+                {pieChartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1A1C2E', 
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '8px',
+                  color: '#fff'
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            {pieChartData.map((item, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
+                <span className="text-xs text-gray-400">{item.name}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+      {/* Employee Table */}
+      <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Recent Employees</h2>
-          <button className="text-primary-500 text-sm font-semibold hover:text-primary-600">
+          <h2 className="text-xl font-bold text-white tracking-tight">Recent Employees</h2>
+          <button className="text-spectro-teal text-sm font-semibold hover:text-spectro-purple transition-colors">
             View All →
           </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Employee</th>
-                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Position</th>
-                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Department</th>
-                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Salary</th>
-                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Status</th>
+              <tr className="border-b border-spectro-border">
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Employee</th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Position</th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Salary</th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
               </tr>
             </thead>
             <tbody>
               {employees.slice(0, 4).map((emp) => (
-                <tr key={emp.id} className="border-b border-gray-50 hover:bg-gray-50">
+                <tr key={emp.id} className="border-b border-spectro-border hover:bg-white/5 transition-colors">
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 gradient-primary rounded-full flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center">
                         <span className="text-white font-semibold text-sm">{emp.name.charAt(0)}</span>
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">{emp.name}</p>
-                        <p className="text-sm text-gray-500">{emp.email}</p>
+                        <p className="font-semibold text-white text-sm">{emp.name}</p>
+                        <p className="text-xs text-gray-500">{emp.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-gray-700">{emp.position}</td>
-                  <td className="py-4 px-4 text-gray-700">{emp.department}</td>
-                  <td className="py-4 px-4 font-semibold text-gray-900">₱{emp.salary.toLocaleString()}</td>
+                  <td className="py-4 px-4 text-gray-300 text-sm">{emp.position}</td>
+                  <td className="py-4 px-4 text-gray-300 text-sm">{emp.department}</td>
+                  <td className="py-4 px-4 font-mono font-semibold text-white text-sm">₱{emp.salary.toLocaleString()}</td>
                   <td className="py-4 px-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                       emp.status === 'Active' 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-gray-100 text-gray-700'
+                        ? 'bg-spectro-teal/10 text-spectro-teal' 
+                        : 'bg-gray-500/10 text-gray-400'
                     }`}>
                       {emp.status}
                     </span>

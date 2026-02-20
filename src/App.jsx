@@ -27,9 +27,9 @@ function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-spectro-bg">
       <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
-      <main className="flex-1 ml-64">
+      <main className="flex-1 ml-64 p-8">
         {renderPage()}
       </main>
     </div>
