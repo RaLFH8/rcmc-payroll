@@ -50,6 +50,28 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   }
   
+  /* Force dark text in light mode for all glass-card content */
+  .glass-card {
+    color: rgb(15, 23, 42); /* slate-900 */
+  }
+  
+  .dark .glass-card {
+    color: white;
+  }
+  
+  /* Override any white text in light mode */
+  .glass-card h1,
+  .glass-card h2,
+  .glass-card h3,
+  .glass-card h4,
+  .glass-card h5,
+  .glass-card h6,
+  .glass-card p,
+  .glass-card span,
+  .glass-card div {
+    color: inherit;
+  }
+  
   .glow-primary {
     box-shadow: 0 0 20px rgba(168, 85, 247, 0.3), 0 0 40px rgba(45, 212, 191, 0.2);
   }
