@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { DollarSign, Users, TrendingUp, Wallet } from 'lucide-react'
+import { Coins, Users, TrendingUp, Wallet } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import StatCard from '../components/StatCard'
 import { AreaChart, Area, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
@@ -105,7 +105,7 @@ const Dashboard = ({ setCurrentPage }) => {
             title="Total Payroll"
             value={`₱${stats.totalPayroll.toLocaleString()}`}
             change="+8.2%"
-            icon={DollarSign}
+            icon={Coins}
             gradient="gradient-primary"
           />
         </div>
