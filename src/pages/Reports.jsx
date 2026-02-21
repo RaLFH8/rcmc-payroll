@@ -99,15 +99,15 @@ const Reports = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Reports & Analytics</h1>
-          <p className="text-gray-400 text-sm mt-1">Generate and export payroll reports</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Reports & Analytics</h1>
+          <p className="text-slate-600 dark:text-gray-400 text-sm mt-1">Generate and export payroll reports</p>
         </div>
         <div className="flex gap-3">
           <input
             type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="px-4 py-2 bg-white/5 border border-spectro-border rounded-lg text-gray-300 focus:outline-none focus:border-spectro-purple"
+            className="px-4 py-2 bg-white dark:bg-white/5 border border-slate-300 dark:border-spectro-border rounded-lg text-slate-900 dark:text-gray-300 focus:outline-none focus:border-spectro-purple"
           />
           <button
             onClick={exportToCSV}
@@ -126,7 +126,7 @@ const Reports = () => {
           className={`px-6 py-3 rounded-lg font-semibold transition-all ${
             reportType === 'summary'
               ? 'gradient-primary text-white glow-primary'
-              : 'bg-white/5 text-gray-400 hover:bg-white/10'
+              : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-gray-400 hover:bg-slate-200 dark:hover:bg-white/10'
           }`}
         >
           Summary Report
@@ -136,7 +136,7 @@ const Reports = () => {
           className={`px-6 py-3 rounded-lg font-semibold transition-all ${
             reportType === 'detailed'
               ? 'gradient-primary text-white glow-primary'
-              : 'bg-white/5 text-gray-400 hover:bg-white/10'
+              : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-gray-400 hover:bg-slate-200 dark:hover:bg-white/10'
           }`}
         >
           Detailed Report
@@ -146,7 +146,7 @@ const Reports = () => {
           className={`px-6 py-3 rounded-lg font-semibold transition-all ${
             reportType === 'deductions'
               ? 'gradient-primary text-white glow-primary'
-              : 'bg-white/5 text-gray-400 hover:bg-white/10'
+              : 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-gray-400 hover:bg-slate-200 dark:hover:bg-white/10'
           }`}
         >
           Deductions Report
@@ -160,10 +160,10 @@ const Reports = () => {
             <div className="w-10 h-10 bg-spectro-purple/20 rounded-lg flex items-center justify-center">
               <Users size={20} className="text-spectro-purple" />
             </div>
-            <p className="text-sm text-gray-400 font-medium">Total Employees</p>
+            <p className="text-sm text-slate-600 dark:text-gray-400 font-medium">Total Employees</p>
           </div>
-          <p className="text-3xl font-bold text-white">{stats.employeeCount}</p>
-          <p className="text-xs text-gray-500 mt-1">{stats.activeEmployees} active</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">{stats.employeeCount}</p>
+          <p className="text-xs text-slate-500 dark:text-gray-500 mt-1">{stats.activeEmployees} active</p>
         </div>
 
         <div className="glass-card rounded-2xl p-6">
@@ -171,32 +171,32 @@ const Reports = () => {
             <div className="w-10 h-10 bg-spectro-teal/20 rounded-lg flex items-center justify-center">
               <DollarSign size={20} className="text-spectro-teal" />
             </div>
-            <p className="text-sm text-gray-400 font-medium">Total Payroll</p>
+            <p className="text-sm text-slate-600 dark:text-gray-400 font-medium">Total Payroll</p>
           </div>
-          <p className="text-3xl font-bold text-white">₱{stats.totalSalary.toLocaleString()}</p>
-          <p className="text-xs text-gray-500 mt-1">Gross amount</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">₱{stats.totalSalary.toLocaleString()}</p>
+          <p className="text-xs text-slate-500 dark:text-gray-500 mt-1">Gross amount</p>
         </div>
 
         <div className="glass-card rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
-              <TrendingUp size={20} className="text-red-400" />
+              <TrendingUp size={20} className="text-red-600 dark:text-red-400" />
             </div>
-            <p className="text-sm text-gray-400 font-medium">Total Deductions</p>
+            <p className="text-sm text-slate-600 dark:text-gray-400 font-medium">Total Deductions</p>
           </div>
-          <p className="text-3xl font-bold text-white">₱{stats.totalDeductions.toLocaleString()}</p>
-          <p className="text-xs text-gray-500 mt-1">All contributions</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">₱{stats.totalDeductions.toLocaleString()}</p>
+          <p className="text-xs text-slate-500 dark:text-gray-500 mt-1">All contributions</p>
         </div>
 
         <div className="glass-card rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-              <Calendar size={20} className="text-green-400" />
+              <Calendar size={20} className="text-green-600 dark:text-green-400" />
             </div>
-            <p className="text-sm text-gray-400 font-medium">Net Payroll</p>
+            <p className="text-sm text-slate-600 dark:text-gray-400 font-medium">Net Payroll</p>
           </div>
-          <p className="text-3xl font-bold text-white">₱{stats.netPayroll.toLocaleString()}</p>
-          <p className="text-xs text-gray-500 mt-1">After deductions</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">₱{stats.netPayroll.toLocaleString()}</p>
+          <p className="text-xs text-slate-500 dark:text-gray-500 mt-1">After deductions</p>
         </div>
       </div>
 

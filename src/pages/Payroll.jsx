@@ -549,15 +549,15 @@ const Payroll = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="glass-card rounded-2xl p-6">
-          <p className="text-sm dark:text-gray-400 text-slate-600 font-medium mb-2">Total Payroll</p>
-          <p className="text-3xl font-bold dark:text-white text-slate-900">₱{totalPayroll.toLocaleString()}</p>
+          <p className="text-sm text-slate-600 dark:text-gray-400 font-medium mb-2">Total Payroll</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">₱{totalPayroll.toLocaleString()}</p>
         </div>
         <div className="glass-card rounded-2xl p-6">
-          <p className="text-sm dark:text-gray-400 text-slate-600 font-medium mb-2">Total Deductions</p>
-          <p className="text-3xl font-bold text-red-400">₱{totalDeductions.toLocaleString()}</p>
+          <p className="text-sm text-slate-600 dark:text-gray-400 font-medium mb-2">Total Deductions</p>
+          <p className="text-3xl font-bold text-red-600 dark:text-red-400">₱{totalDeductions.toLocaleString()}</p>
         </div>
         <div className="glass-card rounded-2xl p-6">
-          <p className="text-sm dark:text-gray-400 text-slate-600 font-medium mb-2">Net Payroll</p>
+          <p className="text-sm text-slate-600 dark:text-gray-400 font-medium mb-2">Net Payroll</p>
           <p className="text-3xl font-bold text-spectro-teal">₱{totalNetPay.toLocaleString()}</p>
         </div>
       </div>
