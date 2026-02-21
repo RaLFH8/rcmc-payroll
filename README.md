@@ -186,3 +186,11 @@ MIT
 ---
 
 Made with ❤️ for modern payroll management
+
+
+## 🎯 Recent Updates
+
+- ✅ Payslip history tracking feature
+- ✅ Light mode text visibility improvements
+- ✅ Monthly/Weekly payroll toggle
+- ✅ Enhanced dark theme support
