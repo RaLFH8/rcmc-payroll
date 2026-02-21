@@ -72,6 +72,43 @@ export const db = {
     return data
   },
 
+  // Payslip History
+  async savePayslipHistory(payslip) {
+    const { data, error } = await supabase
+      .from('payslip_history')
+      .insert([payslip])
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  async getPayslipHistory(employeeId = null) {
+    let query = supabase
+      .from('payslip_history')
+      .select('*')
+      .order('generated_at', { ascending: false })
+    
+    if (employeeId) {
+      query = query.eq('employee_id', employeeId)
+    }
+    
+    const { data, error } = await query
+    
+    if (error) throw error
+    return data || []
+  },
+
+  async deletePayslipHistory(id) {
+    const { error } = await supabase
+      .from('payslip_history')
+      .delete()
+      .eq('id', id)
+    
+    if (error) throw error
+  },
+
   // Initialize sample data (disabled - start with empty database)
   async initializeSampleData() {
     // No sample data - users will add their own employees

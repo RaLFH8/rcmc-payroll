@@ -108,7 +108,7 @@ const Payroll = () => {
     }
   }
 
-  const downloadPayslipPDF = (employee) => {
+  const downloadPayslipPDF = async (employee) => {
     const doc = new jsPDF()
     const salary = getSalaryAmount(employee)
     const incentive = getIncentiveAmount(employee)
@@ -122,6 +122,8 @@ const Payroll = () => {
     
     let periodLabel = monthYear
     let workDays = ''
+    let startDate = null
+    let endDate = null
     
     const dates = employeeDates[employee.id]
     if (payPeriodType === 'weekly' && dates?.startDate && dates?.endDate) {
@@ -130,6 +132,8 @@ const Payroll = () => {
       const days = calculateWorkDays(employee.id)
       periodLabel = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
       workDays = `${days} ${days === 1 ? 'day' : 'days'}`
+      startDate = dates.startDate
+      endDate = dates.endDate
     }
     
     const dateIssued = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -284,6 +288,31 @@ const Payroll = () => {
     
     // Save PDF
     doc.save(`Payslip_${employee.name.replace(/\s+/g, '_')}_${monthYear.replace(/\s+/g, '_')}.pdf`)
+    
+    // Save to payslip history
+    try {
+      await db.savePayslipHistory({
+        employee_id: employee.id,
+        employee_name: employee.name,
+        period_type: payPeriodType,
+        period_label: periodLabel,
+        start_date: startDate,
+        end_date: endDate,
+        work_days: payPeriodType === 'weekly' ? calculateWorkDays(employee.id) : 30,
+        basic_salary: salary,
+        incentive: incentive,
+        sss_deduction: sss,
+        philhealth_deduction: philhealth,
+        pagibig_deduction: pagibig,
+        cash_advance: cashAdvance,
+        total_deductions: totalDed,
+        net_pay: netPay
+      })
+      console.log('Payslip saved to history')
+    } catch (error) {
+      console.error('Error saving payslip history:', error)
+      // Don't block PDF download if history save fails
+    }
     
     // Close the preview modal after download
     setPreviewEmployee(null)

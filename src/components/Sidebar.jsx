@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, DollarSign, FileText, Settings, Bell, MessageSquare, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Users, DollarSign, FileText, Settings, Bell, MessageSquare, LogOut, Menu, X, History } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 
 const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) => {
@@ -8,6 +8,7 @@ const Sidebar = ({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) =
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'employees', label: 'Employees', icon: Users },
     { id: 'payroll', label: 'Payroll', icon: DollarSign },
+    { id: 'payslip-history', label: 'Payslip History', icon: History },
     { id: 'reports', label: 'Reports', icon: FileText },
     { id: 'settings', label: 'Settings', icon: Settings },
   ]

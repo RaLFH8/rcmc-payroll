@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
 import Employees from './pages/Employees'
 import Payroll from './pages/Payroll'
+import PayslipHistory from './pages/PayslipHistory'
 import Reports from './pages/Reports'
 import Settings from './pages/Settings'
 
@@ -41,6 +42,8 @@ function App() {
         return <Employees />
       case 'payroll':
         return <Payroll />
+      case 'payslip-history':
+        return <PayslipHistory />
       case 'reports':
         return <Reports />
       case 'settings':
