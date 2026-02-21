@@ -514,13 +514,13 @@ const Payroll = () => {
           <p className="dark:text-gray-400 text-slate-600 text-xs md:text-sm mt-1">Process and manage employee payroll</p>
         </div>
         <div className="flex gap-2 md:gap-3 items-center flex-wrap">
-          <div className="flex gap-1 md:gap-2 bg-slate-100 dark:bg-spectro-bg border-2 dark:border-spectro-border border-slate-300 rounded-lg p-1 md:p-1.5">
+          <div className="flex gap-1 md:gap-2 bg-white dark:bg-spectro-bg border-2 border-slate-300 dark:border-spectro-border rounded-lg p-1 md:p-1.5 shadow-sm">
             <button
               onClick={() => setPayPeriodType('monthly')}
               className={`px-3 md:px-5 py-2 md:py-2.5 rounded-md text-xs md:text-sm font-semibold transition-all whitespace-nowrap ${
                 payPeriodType === 'monthly'
                   ? 'bg-spectro-purple text-white shadow-lg'
-                  : 'dark:text-gray-300 text-slate-700 hover:bg-white dark:hover:bg-white/10'
+                  : 'text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
             >
               Monthly
@@ -530,7 +530,7 @@ const Payroll = () => {
               className={`px-3 md:px-5 py-2 md:py-2.5 rounded-md text-xs md:text-sm font-semibold transition-all whitespace-nowrap ${
                 payPeriodType === 'weekly'
                   ? 'bg-spectro-purple text-white shadow-lg'
-                  : 'dark:text-gray-300 text-slate-700 hover:bg-white dark:hover:bg-white/10'
+                  : 'text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
             >
               Weekly
@@ -541,7 +541,7 @@ const Payroll = () => {
               type="month"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-3 md:px-4 py-2 text-sm dark:bg-white/5 bg-white border dark:border-spectro-border border-slate-300 rounded-lg dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple w-full sm:w-auto"
+              className="px-3 md:px-4 py-2 text-sm bg-white dark:bg-white/5 border border-slate-300 dark:border-spectro-border rounded-lg text-slate-900 dark:text-gray-300 focus:outline-none focus:border-spectro-purple focus:ring-2 focus:ring-spectro-purple/20 w-full sm:w-auto shadow-sm"
             />
           )}
         </div>
