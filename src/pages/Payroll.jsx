@@ -478,17 +478,17 @@ const Payroll = () => {
   }
 
   return (
-    <div className="w-full space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div className="w-full space-y-4 md:space-y-6 mt-16 lg:mt-0">
+      <div className="flex flex-col gap-3 md:gap-4">
         <div className="flex-shrink-0">
-          <h1 className="text-2xl font-bold tracking-tight dark:text-white text-slate-900 whitespace-nowrap">Payroll Management</h1>
-          <p className="dark:text-gray-400 text-slate-600 text-sm mt-1">Process and manage employee payroll</p>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight dark:text-white text-slate-900">Payroll Management</h1>
+          <p className="dark:text-gray-400 text-slate-600 text-xs md:text-sm mt-1">Process and manage employee payroll</p>
         </div>
-        <div className="flex gap-3 items-center flex-wrap">
-          <div className="flex gap-2 bg-slate-100 dark:bg-spectro-bg border-2 dark:border-spectro-border border-slate-300 rounded-lg p-1.5">
+        <div className="flex gap-2 md:gap-3 items-center flex-wrap">
+          <div className="flex gap-1 md:gap-2 bg-slate-100 dark:bg-spectro-bg border-2 dark:border-spectro-border border-slate-300 rounded-lg p-1 md:p-1.5">
             <button
               onClick={() => setPayPeriodType('monthly')}
-              className={`px-5 py-2.5 rounded-md text-sm font-semibold transition-all whitespace-nowrap ${
+              className={`px-3 md:px-5 py-2 md:py-2.5 rounded-md text-xs md:text-sm font-semibold transition-all whitespace-nowrap ${
                 payPeriodType === 'monthly'
                   ? 'bg-spectro-purple text-white shadow-lg'
                   : 'dark:text-gray-300 text-slate-700 hover:bg-white dark:hover:bg-white/10'
@@ -498,7 +498,7 @@ const Payroll = () => {
             </button>
             <button
               onClick={() => setPayPeriodType('weekly')}
-              className={`px-5 py-2.5 rounded-md text-sm font-semibold transition-all whitespace-nowrap ${
+              className={`px-3 md:px-5 py-2 md:py-2.5 rounded-md text-xs md:text-sm font-semibold transition-all whitespace-nowrap ${
                 payPeriodType === 'weekly'
                   ? 'bg-spectro-purple text-white shadow-lg'
                   : 'dark:text-gray-300 text-slate-700 hover:bg-white dark:hover:bg-white/10'
@@ -512,7 +512,7 @@ const Payroll = () => {
               type="month"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-4 py-2 dark:bg-white/5 bg-white border dark:border-spectro-border border-slate-300 rounded-lg dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple"
+              className="px-3 md:px-4 py-2 text-sm dark:bg-white/5 bg-white border dark:border-spectro-border border-slate-300 rounded-lg dark:text-gray-300 text-slate-900 focus:outline-none focus:border-spectro-purple w-full sm:w-auto"
             />
           )}
         </div>

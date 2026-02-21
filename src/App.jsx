@@ -10,6 +10,7 @@ import Settings from './pages/Settings'
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const { theme } = useTheme()
 
   // Keep Supabase connection alive (prevents free tier from pausing)
@@ -51,8 +52,22 @@ function App() {
 
   return (
     <div className={`flex min-h-screen ${theme === 'dark' ? 'bg-spectro-bg' : 'bg-slate-50'}`}>
-      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
-      <main className="flex-1 min-w-0 ml-64 p-8">
+      <Sidebar 
+        currentPage={currentPage} 
+        setCurrentPage={setCurrentPage}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
+      
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      <main className="flex-1 min-w-0 lg:ml-64 p-4 md:p-6 lg:p-8">
         {renderPage()}
       </main>
     </div>
